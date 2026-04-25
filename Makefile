@@ -9,4 +9,4 @@ dev-down:
 	docker compose -f docker-compose.dev.yml down
 
 dev-logs:
-	docker compose -f docker-compose.dev.yml logs -f rakkoons-api-dev
+	docker compose -f docker-compose.dev.yml logs -f rakkoons-api-dev -f

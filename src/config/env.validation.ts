@@ -5,15 +5,20 @@ export const envSchema = z.object({
     .enum(['development', 'production', 'test'])
     .default('development'),
 
-  PORT: z.coerce.number().int().min(1010).max(65535).default(8080),
+  PORT: z.coerce.number().int().min(1024).max(65535).default(8080),
 
   DATABASE_URL: z.string().url(),
 
   JWT_ACCESS_TOKEN_SECRET: z.string().min(32),
   JWT_REFRESH_TOKEN_SECRET: z.string().min(32),
 
-  JWT_ACCESS_TOKEN_EXPIRATION: z.coerce.string().default('15m'),
-  JWT_REFRESH_TOKEN_EXPIRATION: z.coerce.string().default('7d'),
+  JWT_ACCESS_TOKEN_EXPIRATION: z.string().default('15m'),
+  JWT_REFRESH_TOKEN_EXPIRATION: z.string().default('7d'),
+
+  CORS_ORIGIN: z
+    .string()
+    .optional()
+    .transform((val) => val?.split(',').filter(Boolean) ?? []),
 });
 
 export type Env = z.infer<typeof envSchema>;

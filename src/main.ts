@@ -4,16 +4,20 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
+import { ConfigService } from '@nestjs/config';
+import { type Env } from './config/env.validation.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const port = process.env.PORT ?? 3000;
+  const config = app.get<ConfigService<Env, true>>(ConfigService);
+
+  const port = config.get('PORT', { infer: true });
 
   app.useLogger(app.get(Logger));
 
   app.use(helmet());
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(',') ?? [],
+    origin: config.get('CORS_ORIGIN', { infer: true }),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true,
   });
