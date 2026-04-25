@@ -6,6 +6,8 @@ import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 import { ConfigService } from '@nestjs/config';
 import { type Env } from './config/env.validation.js';
+import { AllExceptionsFilter } from './common/errors/all-exceptions.filter';
+import { PinoLogger } from 'nestjs-pino';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -29,6 +31,8 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  app.useGlobalFilters(new AllExceptionsFilter(app.get(PinoLogger)));
 
   app.enableVersioning({
     type: VersioningType.URI,
