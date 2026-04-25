@@ -31,7 +31,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const { status, message } = this.resolveException(exception);
 
-    if (status >= 500) {
+    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error({ err: exception, req: request }, message);
     } else {
       this.logger.warn({ req: request }, message);
