@@ -34,10 +34,11 @@ services:
     volumes:
       - rakkoons-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      tart_period: 10s
     networks:
       - rakkoons-dev-network
 

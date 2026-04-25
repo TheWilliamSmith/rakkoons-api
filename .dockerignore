@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+bruno
+.prettierrc
+docker-compose.*.yml
+Makefile
+nest-cli.json
+README.md
+.env
+.env.*
+.git
+.gitignore  
+test/

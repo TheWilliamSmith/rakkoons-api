@@ -5,7 +5,7 @@ ARG HOST_GID=1000
 
 WORKDIR /app
 
-RUN npm install -g pnpm@10.9.0
+RUN corepack enable && corepack prepare pnpm@10.9.0 --activate
 
 RUN { getent passwd ${HOST_UID} && deluser "$(getent passwd ${HOST_UID} | cut -d: -f1)"; } 2>/dev/null || true \
     && { getent group ${HOST_GID} && delgroup "$(getent group ${HOST_GID} | cut -d: -f1)"; } 2>/dev/null || true \
@@ -20,6 +20,14 @@ USER rakkoons
 COPY package.json pnpm-lock.yaml ./ 
 
 RUN pnpm install --frozen-lockfile
+
+FROM base AS dependencies-prod
+
+USER rakkoons
+
+COPY package.json pnpm-lock.yaml ./ 
+
+RUN pnpm install --frozen-lockfile --prod
 
 FROM base AS build
 
@@ -36,9 +44,7 @@ RUN pnpm run build
 
 FROM base AS production
 
-USER rakkoons
-
-COPY --from=dependencies --chown=rakkoons:rakkoons /app/node_modules ./node_modules
+COPY --from=dependencies-prod --chown=rakkoons:rakkoons /app/node_modules ./node_modules
 COPY --from=build --chown=rakkoons:rakkoons /app/dist ./dist
 COPY --from=build --chown=rakkoons:rakkoons /app/package.json ./package.json  
 COPY --from=build --chown=rakkoons:rakkoons /app/docker/ ./docker/
