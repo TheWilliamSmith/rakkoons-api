@@ -94,7 +94,7 @@ jobs:
       - run: pnpm lint
 
   test-unit:
-    needs: ['setup', 'build']
+    needs: ['setup', 'eslint']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
