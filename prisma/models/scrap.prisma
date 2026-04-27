@@ -1,0 +1,10 @@
+model JobSource {
+    id        String    @id @default(uuid())
+    name      String    @unique
+    slug      String    @unique
+    baseUrl   String
+    enabled   Boolean   @default(true)
+    lastRun   DateTime?
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+}
