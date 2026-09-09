@@ -18,6 +18,28 @@ const DOMAIN_ERROR_HTTP_MAP: Record<DomainErrorCode, HttpStatus> = {
   BUSINESS_RULE_VIOLATION: HttpStatus.BAD_REQUEST,
 };
 
+const HTTP_STATUS_ERROR_CODES: Record<number, string> = {
+  [HttpStatus.BAD_REQUEST]: 'BAD_REQUEST',
+  [HttpStatus.UNAUTHORIZED]: 'UNAUTHORIZED',
+  [HttpStatus.FORBIDDEN]: 'FORBIDDEN',
+  [HttpStatus.NOT_FOUND]: 'NOT_FOUND',
+  [HttpStatus.METHOD_NOT_ALLOWED]: 'METHOD_NOT_ALLOWED',
+  [HttpStatus.CONFLICT]: 'ALREADY_EXISTS',
+  [HttpStatus.PAYLOAD_TOO_LARGE]: 'PAYLOAD_TOO_LARGE',
+  [HttpStatus.UNSUPPORTED_MEDIA_TYPE]: 'UNSUPPORTED_MEDIA_TYPE',
+  [HttpStatus.UNPROCESSABLE_ENTITY]: 'VALIDATION_ERROR',
+  [HttpStatus.TOO_MANY_REQUESTS]: 'TOO_MANY_REQUESTS',
+};
+
+const UNEXPECTED_ERROR_CODE = 'INTERNAL_ERROR';
+
+interface ErrorResponseBody {
+  statusCode: HttpStatus;
+  code: string;
+  timestamp: string;
+  path: string;
+}
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   constructor(private readonly logger: PinoLogger) {
@@ -29,46 +51,47 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
 
-    const { status, message } = this.resolveException(exception);
+    const { status, code } = this.resolveException(exception);
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-      this.logger.error({ err: exception, req: request }, message);
+      this.logger.error({ err: exception }, code);
     } else {
-      this.logger.warn({ req: request }, message);
+      this.logger.warn(code);
     }
 
-    response.status(status).json({
+    const body: ErrorResponseBody = {
       statusCode: status,
-      message,
+      code,
       timestamp: new Date().toISOString(),
       path: request.url,
-    });
+    };
+
+    response.status(status).json(body);
   }
 
   private resolveException(exception: unknown): {
     status: HttpStatus;
-    message: string;
+    code: string;
   } {
     if (exception instanceof DomainError) {
       return {
         status: DOMAIN_ERROR_HTTP_MAP[exception.code],
-        message: exception.message,
+        code: exception.code,
       };
     }
 
     if (exception instanceof HttpException) {
-      const res = exception.getResponse();
-      const message =
-        typeof res === 'string'
-          ? res
-          : ((res as { message?: string }).message ?? exception.message);
+      const status = exception.getStatus();
 
-      return { status: exception.getStatus(), message };
+      return {
+        status,
+        code: HTTP_STATUS_ERROR_CODES[status] ?? UNEXPECTED_ERROR_CODE,
+      };
     }
 
     return {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'Internal server error',
+      code: UNEXPECTED_ERROR_CODE,
     };
   }
 }

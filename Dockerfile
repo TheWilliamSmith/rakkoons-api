@@ -5,7 +5,11 @@ ARG HOST_GID=1000
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@10.9.0 --activate
+ENV COREPACK_HOME=/usr/local/share/corepack
+
+RUN corepack enable \
+    && corepack prepare pnpm@10.29.3 --activate \
+    && chmod -R a+rX ${COREPACK_HOME}
 
 RUN { getent passwd ${HOST_UID} && deluser "$(getent passwd ${HOST_UID} | cut -d: -f1)"; } 2>/dev/null || true \
     && { getent group ${HOST_GID} && delgroup "$(getent group ${HOST_GID} | cut -d: -f1)"; } 2>/dev/null || true \
@@ -17,7 +21,7 @@ FROM base AS dependencies
 
 USER rakkoons
 
-COPY package.json pnpm-lock.yaml ./ 
+COPY --chown=rakkoons:rakkoons package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 RUN pnpm install --frozen-lockfile
 
@@ -25,7 +29,7 @@ FROM base AS dependencies-prod
 
 USER rakkoons
 
-COPY package.json pnpm-lock.yaml ./ 
+COPY --chown=rakkoons:rakkoons package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 RUN pnpm install --frozen-lockfile --prod
 
@@ -33,13 +37,16 @@ FROM base AS build
 
 USER rakkoons
 
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY src/ ./src/
-COPY .docker/ ./docker/
-COPY package.json ./package.json
-COPY tsconfig.json ./tsconfig.json
-COPY tsconfig.build.json ./tsconfig.build.json
+COPY --from=dependencies --chown=rakkoons:rakkoons /app/node_modules ./node_modules
+COPY --chown=rakkoons:rakkoons src/ ./src/
+COPY --chown=rakkoons:rakkoons prisma/ ./prisma/
+COPY --chown=rakkoons:rakkoons .docker/ ./docker/
+COPY --chown=rakkoons:rakkoons package.json ./package.json
+COPY --chown=rakkoons:rakkoons prisma.config.ts ./prisma.config.ts
+COPY --chown=rakkoons:rakkoons tsconfig.json ./tsconfig.json
+COPY --chown=rakkoons:rakkoons tsconfig.build.json ./tsconfig.build.json
 
+RUN pnpm run db:generate
 RUN pnpm run build
 
 FROM base AS production

@@ -1,8 +1,9 @@
 # Rakkoons
 
 @.claude/rules/project.md
-@.claude/rules/design.md
-@.claude/rules/components.md
-@.claude/rules/content.md
-@.claude/rules/lib.md
-@.claude/rules/tests.md
+@.claude/rules/domain.md
+@.claude/rules/application.md
+@.claude/rules/infrastructure.md
+@.claude/rules/presentation.md
+@.claude/rules/prisma.md
+@.claude/rules/test.md

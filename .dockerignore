@@ -12,3 +12,7 @@ README.md
 .git
 .gitignore  
 test/
+src/generated
+coverage
+.github
+projectDoc

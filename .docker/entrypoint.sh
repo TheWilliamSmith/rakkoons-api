@@ -1,4 +1,4 @@
 #!/bin/sh
-set -e pipefail
+set -eu
 
 pnpm run start:prod

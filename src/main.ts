@@ -1,26 +1,30 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import helmet from 'helmet';
-import { Logger } from 'nestjs-pino';
 import { ConfigService } from '@nestjs/config';
-import { type Env } from './config/env.validation.js';
-import { AllExceptionsFilter } from './common/errors/all-exceptions.filter';
-import { PinoLogger } from 'nestjs-pino';
+import { Logger } from 'nestjs-pino';
+import helmet from 'helmet';
+import { AppModule } from './app.module';
+import { type Env } from './config/env.validation';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+const API_PREFIX = 'api';
+const DEFAULT_API_VERSION = '1';
+const SWAGGER_PATH = 'api/docs';
+const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
+
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = app.get(Logger);
+  app.useLogger(logger);
+
   const config = app.get<ConfigService<Env, true>>(ConfigService);
-
   const port = config.get('PORT', { infer: true });
-
-  app.useLogger(app.get(Logger));
+  const isProduction = config.get('NODE_ENV', { infer: true }) === 'production';
 
   app.use(helmet());
   app.enableCors({
     origin: config.get('CORS_ORIGIN', { infer: true }),
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    methods: ALLOWED_METHODS,
     credentials: true,
   });
 
@@ -29,21 +33,19 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: { enableImplicitConversion: false },
     }),
   );
 
-  app.useGlobalFilters(new AllExceptionsFilter(app.get(PinoLogger)));
-
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: '1',
+    defaultVersion: DEFAULT_API_VERSION,
   });
-  app.setGlobalPrefix('api');
-
+  app.setGlobalPrefix(API_PREFIX);
   app.enableShutdownHooks();
 
-  if (process.env.NODE_ENV !== 'production') {
-    const config = new DocumentBuilder()
+  if (!isProduction) {
+    const documentConfig = new DocumentBuilder()
       .setTitle('Rakkoons API Swagger')
       .setDescription('API documentation for Rakkoons')
       .setVersion('1.0')
@@ -51,15 +53,15 @@ async function bootstrap() {
       .build();
 
     SwaggerModule.setup(
-      'api/docs',
+      SWAGGER_PATH,
       app,
-      SwaggerModule.createDocument(app, config),
+      SwaggerModule.createDocument(app, documentConfig),
     );
   }
 
   await app.listen(port);
 
-  app.get(Logger).log(`Server is running on port ${port}`);
+  logger.log(`Server is running on port ${port}`);
 }
 
 void bootstrap();

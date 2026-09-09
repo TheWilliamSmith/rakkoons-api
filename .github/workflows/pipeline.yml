@@ -6,7 +6,7 @@ on:
 
 env:
   NODE_VERSION: 22.15.0
-  PNPM_VERSION: 10.9.0
+  PNPM_VERSION: 10.29.3
 
 jobs:
   setup:
@@ -65,7 +65,7 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Setup Prisma
-        run: pnpm prisma generate
+        run: pnpm run db:generate
 
       - run: pnpm build
 
@@ -95,7 +95,7 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Setup Prisma
-        run: pnpm prisma generate
+        run: pnpm run db:generate
 
       - run: pnpm lint
 
@@ -124,4 +124,64 @@ jobs:
             node_modules
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
 
+      - name: Setup Prisma
+        run: pnpm run db:generate
+
+      - run: pnpm run typecheck
+
       - run: pnpm run test
+
+  test-e2e:
+    needs: ['setup', 'eslint']
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: rakkoons
+          POSTGRES_PASSWORD: rakkoons
+          POSTGRES_DB: rakkoons
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rakkoons -d rakkoons"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://rakkoons:rakkoons@localhost:5432/rakkoons
+      JWT_ACCESS_TOKEN_SECRET: ${{ secrets.JWT_ACCESS_TOKEN_SECRET || 'ci-access-token-secret-of-at-least-32-chars' }}
+      JWT_REFRESH_TOKEN_SECRET: ${{ secrets.JWT_REFRESH_TOKEN_SECRET || 'ci-refresh-token-secret-of-at-least-32-chars' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "store=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.pnpm-cache.outputs.store }}
+            node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Setup Prisma
+        run: pnpm run db:generate
+
+      - name: Apply migrations
+        run: pnpm run db:deploy
+
+      - run: pnpm run test:e2e
