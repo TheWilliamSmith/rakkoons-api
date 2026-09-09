@@ -43,6 +43,10 @@ export const envSchema = z.object({
   SESSION_SLIDING_LIFETIME_DAYS: durationInDays(14),
   SESSION_ABSOLUTE_LIFETIME_DAYS: durationInDays(60),
 
+  RESEND_API_KEY: z.string().optional(),
+  MAIL_FROM: z.string().min(1).optional(),
+  MAIL_REPLY_TO: z.string().optional(),
+
   RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(60),
   RATE_LIMIT_USERNAME_AVAILABILITY: rateLimit(60),
   RATE_LIMIT_SIGN_UP: rateLimit(5),

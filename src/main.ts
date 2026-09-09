@@ -1,19 +1,20 @@
 import { NestFactory } from '@nestjs/core';
-import { HttpStatus, ValidationPipe, VersioningType } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { type Env } from './config/env.validation';
+import { configureApplication } from './shared/presentation/configure-application';
 
-const API_PREFIX = 'api';
-const DEFAULT_API_VERSION = '1';
 const SWAGGER_PATH = 'api/docs';
 const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
   const logger = app.get(Logger);
   app.useLogger(logger);
 
@@ -28,21 +29,7 @@ async function bootstrap(): Promise<void> {
     credentials: true,
   });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: false },
-      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-    }),
-  );
-
-  app.enableVersioning({
-    type: VersioningType.URI,
-    defaultVersion: DEFAULT_API_VERSION,
-  });
-  app.setGlobalPrefix(API_PREFIX);
+  configureApplication(app);
   app.enableShutdownHooks();
 
   if (!isProduction) {

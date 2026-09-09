@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Post,
@@ -46,6 +47,7 @@ export class AuthController {
   ) {}
 
   @Get('username-availability')
+  @Header('Cache-Control', 'no-store')
   @throttleOnly(ThrottlerName.UsernameAvailability)
   async usernameAvailability(
     @Query() query: UsernameAvailabilityQueryDto,

@@ -68,6 +68,31 @@ describe('Parcours d authentification (e2e)', () => {
       expect(response.body).toEqual({ isAvailable: true });
     });
 
+    it('interdit toute mise en cache de la réponse', async () => {
+      const response = await request(harness.server())
+        .get(`${AUTH}/username-availability`)
+        .query({ username: USERNAME })
+        .expect(200);
+
+      expect(response.headers['cache-control']).toBe('no-store');
+      expect(response.headers.etag).toBeUndefined();
+    });
+
+    it('répond toujours 200 avec un corps, même sur requête conditionnelle', async () => {
+      const first = await request(harness.server())
+        .get(`${AUTH}/username-availability`)
+        .query({ username: USERNAME })
+        .expect(200);
+
+      const revalidated = await request(harness.server())
+        .get(`${AUTH}/username-availability`)
+        .query({ username: USERNAME })
+        .set('If-None-Match', String(first.headers.etag ?? 'W/"anything"'))
+        .expect(200);
+
+      expect(revalidated.body).toEqual({ isAvailable: true });
+    });
+
     it('répond indisponible une fois le nom pris', async () => {
       await signUp();
 

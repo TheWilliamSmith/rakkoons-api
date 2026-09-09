@@ -8,6 +8,7 @@ export const IdentityToken = {
   IdentifierGenerator: Symbol('IdentifierGenerator'),
   SecretGenerator: Symbol('SecretGenerator'),
   MessageSender: Symbol('MessageSender'),
+  EmailTransport: Symbol('EmailTransport'),
   UnitOfWork: Symbol('UnitOfWork'),
   Clock: Symbol('Clock'),
   RegistrationPolicy: Symbol('RegistrationPolicy'),

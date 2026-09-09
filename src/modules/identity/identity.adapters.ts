@@ -1,6 +1,11 @@
 import { Provider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { type Env } from '../../config/env.validation';
 import { IdentityToken } from './identity.tokens';
-import { LoggingMessageSender } from './infrastructure/messaging/logging-message-sender';
+import { EmailMessageSender } from './infrastructure/messaging/email-message-sender';
+import { LoggingEmailTransport } from './infrastructure/messaging/logging-email-transport';
+import { type EmailTransport } from './infrastructure/messaging/outbound-email';
+import { ResendEmailTransport } from './infrastructure/messaging/resend-email-transport';
 import { PrismaAccountRepository } from './infrastructure/persistence/prisma-account.repository';
 import { PrismaSessionRepository } from './infrastructure/persistence/prisma-session.repository';
 import { PrismaUnitOfWork } from './infrastructure/persistence/prisma-unit-of-work';
@@ -37,6 +42,35 @@ export const IDENTITY_ADAPTERS: Provider[] = [
     useClass: UuidIdentifierGenerator,
   },
   { provide: IdentityToken.SecretGenerator, useClass: RandomSecretGenerator },
-  { provide: IdentityToken.MessageSender, useClass: LoggingMessageSender },
+  LoggingEmailTransport,
+  {
+    provide: IdentityToken.EmailTransport,
+    inject: [ConfigService, LoggingEmailTransport],
+    useFactory: (
+      config: ConfigService<Env, true>,
+      logging: LoggingEmailTransport,
+    ): EmailTransport => {
+      const apiKey = config.get('RESEND_API_KEY', { infer: true });
+
+      if (apiKey === undefined) {
+        return logging;
+      }
+
+      const from = config.get('MAIL_FROM', { infer: true });
+
+      if (from === undefined) {
+        throw new Error(
+          'MAIL_FROM is required when RESEND_API_KEY is set, otherwise Resend falls back to its sandbox sender and only delivers to the account owner',
+        );
+      }
+
+      return new ResendEmailTransport(
+        apiKey,
+        from,
+        config.get('MAIL_REPLY_TO', { infer: true }),
+      );
+    },
+  },
+  { provide: IdentityToken.MessageSender, useClass: EmailMessageSender },
   { provide: IdentityToken.Clock, useClass: SystemClock },
 ];

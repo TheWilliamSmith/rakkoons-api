@@ -1,13 +1,9 @@
-import {
-  HttpStatus,
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import { App } from 'supertest/types';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/shared/infrastructure/prisma/prisma.service';
+import { configureApplication } from '../../src/shared/presentation/configure-application';
 import { IdentityToken } from '@identity/identity.tokens';
 import { MessageSender } from '@identity/domain/ports/message-sender';
 import { EmailAddress } from '@identity/domain/value-objects/email-address';
@@ -34,7 +30,7 @@ export class CapturingMessageSender implements MessageSender {
 }
 
 export class AuthE2eHarness {
-  private nestApplication: INestApplication<App> | null = null;
+  private nestApplication: NestExpressApplication | null = null;
 
   readonly messages = new CapturingMessageSender();
   prisma!: PrismaService;
@@ -45,23 +41,10 @@ export class AuthE2eHarness {
       .useValue(this.messages)
       .compile();
 
-    const application: INestApplication<App> =
-      moduleRef.createNestApplication();
+    const application =
+      moduleRef.createNestApplication<NestExpressApplication>();
 
-    application.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: { enableImplicitConversion: false },
-        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-      }),
-    );
-    application.enableVersioning({
-      type: VersioningType.URI,
-      defaultVersion: '1',
-    });
-    application.setGlobalPrefix('api');
+    configureApplication(application);
 
     await application.init();
 
