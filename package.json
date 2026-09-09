@@ -33,8 +33,10 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.4.1",
+    "@nestjs/throttler": "^6.5.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "argon2": "^0.45.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "helmet": "^8.1.0",
@@ -79,19 +81,22 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
+    "rootDir": ".",
+    "testRegex": "src/.*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s",
-      "!generated/**"
+      "src/**/*.(t|j)s",
+      "!src/generated/**"
     ],
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "^@generated/(.*)$": "<rootDir>/generated/$1"
+      "^@generated/(.*)$": "<rootDir>/src/generated/$1",
+      "^@shared/(.*)$": "<rootDir>/src/shared/$1",
+      "^@identity/(.*)$": "<rootDir>/src/modules/identity/$1",
+      "^@test/(.*)$": "<rootDir>/test/$1"
     }
   }
 }

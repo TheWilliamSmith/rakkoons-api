@@ -1,0 +1,15 @@
+export const IdentityToken = {
+  AccountRepository: Symbol('AccountRepository'),
+  VerificationJourneyRepository: Symbol('VerificationJourneyRepository'),
+  SessionRepository: Symbol('SessionRepository'),
+  PasswordHasher: Symbol('PasswordHasher'),
+  SecretHasher: Symbol('SecretHasher'),
+  VerificationCodeGenerator: Symbol('VerificationCodeGenerator'),
+  IdentifierGenerator: Symbol('IdentifierGenerator'),
+  SecretGenerator: Symbol('SecretGenerator'),
+  MessageSender: Symbol('MessageSender'),
+  UnitOfWork: Symbol('UnitOfWork'),
+  Clock: Symbol('Clock'),
+  RegistrationPolicy: Symbol('RegistrationPolicy'),
+  SessionPolicy: Symbol('SessionPolicy'),
+} as const;

@@ -1,0 +1,25 @@
+enum VerificationPurpose {
+    SIGN_UP
+    PASSWORD_RESET
+
+    @@map("verification_purpose")
+}
+
+model VerificationJourney {
+    id            String              @id @db.Uuid
+    purpose       VerificationPurpose
+    accountId     String?             @map("account_id") @db.Uuid
+    codeHash      String              @map("code_hash")
+    attemptsLeft  Int                 @map("attempts_left")
+    codeExpiresAt DateTime            @map("code_expires_at")
+    expiresAt     DateTime            @map("expires_at")
+    consumedAt    DateTime?           @map("consumed_at")
+    createdAt     DateTime            @map("created_at")
+    updatedAt     DateTime            @updatedAt @map("updated_at")
+
+    account Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+    @@index([accountId])
+    @@index([expiresAt])
+    @@map("verification_journeys")
+}

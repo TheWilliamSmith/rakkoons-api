@@ -23,7 +23,10 @@
     "noFallthroughCasesInSwitch": false,
     "types": ["jest", "node"],
     "paths": {
-      "@generated/*": ["./src/generated/*"]
+      "@generated/*": ["./src/generated/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@identity/*": ["./src/modules/identity/*"],
+      "@test/*": ["./test/*"]
     }
   }
 }

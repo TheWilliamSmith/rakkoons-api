@@ -6,11 +6,18 @@
   ],
   "rootDir": "..",
   "testEnvironment": "node",
-  "testRegex": "test/.*\\.e2e-spec\\.ts$",
+  "testRegex": "test/.*\\.(e2e-spec|integration-spec)\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "^@generated/(.*)$": "<rootDir>/src/generated/$1"
-  }
+    "^@generated/(.*)$": "<rootDir>/src/generated/$1",
+    "^@shared/(.*)$": "<rootDir>/src/shared/$1",
+    "^@identity/(.*)$": "<rootDir>/src/modules/identity/$1",
+    "^@test/(.*)$": "<rootDir>/test/$1"
+  },
+  "setupFiles": [
+    "<rootDir>/test/setup-e2e.ts"
+  ],
+  "maxWorkers": 1
 }

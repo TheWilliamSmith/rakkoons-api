@@ -1,0 +1,100 @@
+import { CheckUsernameAvailabilityUseCase } from '@identity/application/check-username-availability.use-case';
+import { ConfirmRegistrationUseCase } from '@identity/application/confirm-registration.use-case';
+import {
+  RegistrationPolicy,
+  SessionPolicy,
+} from '@identity/application/identity-policy';
+import { OpenSessionUseCase } from '@identity/application/open-session.use-case';
+import { RegisterAccountUseCase } from '@identity/application/register-account.use-case';
+import { VerificationJourneyOpener } from '@identity/application/verification-journey-opener';
+import { DirectUnitOfWork } from './in-memory/direct-unit-of-work';
+import { FixedVerificationCodeGenerator } from './in-memory/fixed-verification-code-generator';
+import { FrozenClock } from './in-memory/frozen-clock';
+import { InMemoryAccountRepository } from './in-memory/in-memory-account-repository';
+import { InMemorySessionRepository } from './in-memory/in-memory-session-repository';
+import { InMemoryVerificationJourneyRepository } from './in-memory/in-memory-verification-journey-repository';
+import { RecordingMessageSender } from './in-memory/recording-message-sender';
+import { SequentialIdentifierGenerator } from './in-memory/sequential-identifier-generator';
+import { SequentialSecretGenerator } from './in-memory/sequential-secret-generator';
+import { TrivialPasswordHasher } from './in-memory/trivial-password-hasher';
+import { TrivialSecretHasher } from './in-memory/trivial-secret-hasher';
+
+const MINUTE = 60 * 1000;
+const DAY = 24 * 60 * MINUTE;
+
+export const TEST_CODE = '429861';
+export const TEST_PASSWORD = 'MotDePasseQuiGagne1';
+export const TEST_INSTANT = new Date('2026-01-01T10:00:00.000Z');
+
+export const TEST_REGISTRATION_POLICY: RegistrationPolicy = {
+  journeyLifetime: 15 * MINUTE,
+  codeLifetime: 10 * MINUTE,
+  maxVerificationAttempts: 5,
+  termsVersion: '2026-01',
+};
+
+export const TEST_SESSION_POLICY: SessionPolicy = {
+  slidingLifetime: 14 * DAY,
+  absoluteLifetime: 60 * DAY,
+};
+
+export class IdentityTestContext {
+  readonly accounts = new InMemoryAccountRepository();
+  readonly journeys = new InMemoryVerificationJourneyRepository();
+  readonly sessions = new InMemorySessionRepository();
+  readonly passwordHasher = new TrivialPasswordHasher();
+  readonly secretHasher = new TrivialSecretHasher();
+  readonly codes = new FixedVerificationCodeGenerator(TEST_CODE);
+  readonly identifiers = new SequentialIdentifierGenerator();
+  readonly secrets = new SequentialSecretGenerator();
+  readonly messages = new RecordingMessageSender();
+  readonly unitOfWork = new DirectUnitOfWork();
+  readonly clock = new FrozenClock(TEST_INSTANT);
+
+  registerAccount(): RegisterAccountUseCase {
+    return new RegisterAccountUseCase({
+      accounts: this.accounts,
+      journeys: this.journeys,
+      unitOfWork: this.unitOfWork,
+      passwordHasher: this.passwordHasher,
+      journeyOpener: new VerificationJourneyOpener({
+        secretHasher: this.secretHasher,
+        identifiers: this.identifiers,
+        policy: TEST_REGISTRATION_POLICY,
+      }),
+      codes: this.codes,
+      identifiers: this.identifiers,
+      secrets: this.secrets,
+      messages: this.messages,
+      clock: this.clock,
+      policy: TEST_REGISTRATION_POLICY,
+    });
+  }
+
+  confirmRegistration(): ConfirmRegistrationUseCase {
+    return new ConfirmRegistrationUseCase({
+      accounts: this.accounts,
+      journeys: this.journeys,
+      unitOfWork: this.unitOfWork,
+      secretHasher: this.secretHasher,
+      clock: this.clock,
+    });
+  }
+
+  openSession(): OpenSessionUseCase {
+    return new OpenSessionUseCase({
+      accounts: this.accounts,
+      sessions: this.sessions,
+      passwordHasher: this.passwordHasher,
+      secretHasher: this.secretHasher,
+      identifiers: this.identifiers,
+      secrets: this.secrets,
+      clock: this.clock,
+      policy: TEST_SESSION_POLICY,
+    });
+  }
+
+  checkUsernameAvailability(): CheckUsernameAvailabilityUseCase {
+    return new CheckUsernameAvailabilityUseCase(this.accounts);
+  }
+}

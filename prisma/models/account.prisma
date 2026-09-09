@@ -1,0 +1,23 @@
+enum AccountStatus {
+    PENDING
+    ACTIVE
+
+    @@map("account_status")
+}
+
+model Account {
+    id              String        @id @db.Uuid
+    username        String        @unique @db.Citext
+    email           String        @unique @db.Citext
+    passwordHash    String        @map("password_hash")
+    status          AccountStatus @default(PENDING)
+    termsAcceptedAt DateTime      @map("terms_accepted_at")
+    termsVersion    String        @map("terms_version")
+    createdAt       DateTime      @map("created_at")
+    updatedAt       DateTime      @map("updated_at")
+
+    verificationJourneys VerificationJourney[]
+    sessions             Session[]
+
+    @@map("accounts")
+}

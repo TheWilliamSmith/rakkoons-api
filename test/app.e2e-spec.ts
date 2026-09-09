@@ -27,11 +27,7 @@ describe('Rakkoons API (e2e)', () => {
     const response = await request(app.getHttpServer()).get('/api/v1/unknown');
 
     expect(response.status).toBe(404);
-    expect(response.body).toMatchObject({
-      statusCode: 404,
-      code: 'NOT_FOUND',
-      path: '/api/v1/unknown',
-    });
+    expect(response.body).toEqual({ error: { reason: 'unavailable' } });
   });
 
   it('ne renvoie aucun message destiné à l utilisateur dans une erreur', async () => {

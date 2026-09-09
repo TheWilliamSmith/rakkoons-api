@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+const durationInMinutes = (fallback: number) =>
+  z.coerce.number().int().positive().default(fallback);
+
+const durationInDays = (fallback: number) =>
+  z.coerce.number().int().positive().default(fallback);
+
+const rateLimit = (fallback: number) =>
+  z.coerce.number().int().positive().default(fallback);
+
 export const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
@@ -19,6 +28,27 @@ export const envSchema = z.object({
     .string()
     .optional()
     .transform((val) => val?.split(',').filter(Boolean) ?? []),
+
+  COOKIE_SECURE: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
+
+  TERMS_VERSION: z.string().default('2026-01'),
+
+  SIGNUP_JOURNEY_TTL_MINUTES: durationInMinutes(15),
+  SIGNUP_CODE_TTL_MINUTES: durationInMinutes(10),
+  VERIFICATION_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
+
+  SESSION_SLIDING_LIFETIME_DAYS: durationInDays(14),
+  SESSION_ABSOLUTE_LIFETIME_DAYS: durationInDays(60),
+
+  RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(60),
+  RATE_LIMIT_USERNAME_AVAILABILITY: rateLimit(60),
+  RATE_LIMIT_SIGN_UP: rateLimit(5),
+  RATE_LIMIT_SIGN_UP_VERIFY: rateLimit(10),
+  RATE_LIMIT_SIGN_IN_PER_IP: rateLimit(10),
+  RATE_LIMIT_SIGN_IN_PER_ACCOUNT: rateLimit(5),
 });
 
 export type Env = z.infer<typeof envSchema>;

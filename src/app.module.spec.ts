@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { AppModule } from './app.module';
-import { PrismaService } from './infrastructure/prisma/prisma.service';
+import { PrismaService } from './shared/infrastructure/prisma/prisma.service';
 
 describe('AppModule', () => {
   it('expose le client Prisma à toute l application', async () => {
@@ -11,7 +11,7 @@ describe('AppModule', () => {
     const prisma = moduleRef.get(PrismaService);
 
     expect(prisma).toBeDefined();
-    expect(typeof prisma.user.findUnique).toBe('function');
+    expect(typeof prisma.account.findUnique).toBe('function');
 
     await moduleRef.close();
   });
