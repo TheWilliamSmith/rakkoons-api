@@ -11,20 +11,12 @@ import { VerificationCode } from '@identity/domain/value-objects/verification-co
 
 export class CapturingMessageSender implements MessageSender {
   readonly codes = new Map<string, string>();
-  readonly existingAccountNotices: string[] = [];
 
   sendRegistrationCode(
     recipient: EmailAddress,
     code: VerificationCode,
   ): Promise<void> {
     this.codes.set(recipient.toString(), code.reveal());
-    return Promise.resolve();
-  }
-
-  sendRegistrationAttemptOnExistingAccount(
-    recipient: EmailAddress,
-  ): Promise<void> {
-    this.existingAccountNotices.push(recipient.toString());
     return Promise.resolve();
   }
 }
@@ -65,7 +57,6 @@ export class AuthE2eHarness {
     await this.prisma.verificationJourney.deleteMany();
     await this.prisma.account.deleteMany();
     this.messages.codes.clear();
-    this.messages.existingAccountNotices.length = 0;
   }
 
   async stop(): Promise<void> {

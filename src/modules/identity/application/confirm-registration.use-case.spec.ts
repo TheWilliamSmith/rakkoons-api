@@ -84,19 +84,6 @@ describe('ConfirmRegistrationUseCase', () => {
     expect(await accountStatus()).toBe(AccountStatus.Pending);
   });
 
-  it('refuse tous les codes sur un parcours ouvert pour une adresse déjà enregistrée', async () => {
-    const decoy = await context
-      .registerAccount()
-      .execute({ ...VALID_INPUT, username: 'autrekoon' });
-
-    await expect(
-      context
-        .confirmRegistration()
-        .execute({ journeyId: decoy.journeyId, code: TEST_CODE }),
-    ).rejects.toThrow(VerificationCodeRejectedError);
-    expect(await accountStatus()).toBe(AccountStatus.Pending);
-  });
-
   it('refuse un parcours inconnu', async () => {
     await expect(
       context

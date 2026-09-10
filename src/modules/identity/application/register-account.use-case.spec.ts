@@ -4,6 +4,7 @@ import {
   TEST_PASSWORD,
 } from '@test/identity/identity-test-context';
 import { AccountStatus } from '../domain/account/account-status';
+import { EmailAlreadyRegisteredError } from '../domain/errors/email-already-registered.error';
 import { UsernameAlreadyTakenError } from '../domain/errors/username-already-taken.error';
 
 const VALID_INPUT = {
@@ -49,37 +50,35 @@ describe('RegisterAccountUseCase', () => {
     expect(context.journeys.count()).toBe(journeysBefore);
   });
 
-  it('ne crée ni compte ni code sur une adresse déjà enregistrée', async () => {
+  it('refuse une adresse déjà enregistrée et ne crée rien', async () => {
     await context.registerAccount().execute(VALID_INPUT);
     const accountsBefore = context.accounts.count();
+    const journeysBefore = context.journeys.count();
     const codesBefore = context.codes.generatedCount;
 
-    const output = await context.registerAccount().execute({
-      ...VALID_INPUT,
-      username: 'autrekoon',
-    });
+    await expect(
+      context.registerAccount().execute({
+        ...VALID_INPUT,
+        username: 'autrekoon',
+      }),
+    ).rejects.toThrow(EmailAlreadyRegisteredError);
 
     expect(context.accounts.count()).toBe(accountsBefore);
+    expect(context.journeys.count()).toBe(journeysBefore);
     expect(context.codes.generatedCount).toBe(codesBefore);
     expect(context.messages.registrationCodes).toHaveLength(1);
-    expect(context.messages.existingAccountNotices).toEqual([
-      'william@rakkoons.fr',
-    ]);
-    expect(
-      (await context.journeys.findById(output.journeyId))?.accountId,
-    ).toBeNull();
   });
 
-  it('produit un résultat indiscernable entre une inscription réussie et une adresse déjà enregistrée', async () => {
-    const first = await context.registerAccount().execute(VALID_INPUT);
-    const second = await context.registerAccount().execute({
-      ...VALID_INPUT,
-      username: 'autrekoon',
-    });
+  it('refuse une adresse déjà enregistrée quelle que soit la casse', async () => {
+    await context.registerAccount().execute(VALID_INPUT);
 
-    expect(Object.keys(second)).toEqual(Object.keys(first));
-    expect(second.journeyExpiresAt).toEqual(first.journeyExpiresAt);
-    expect(second.journeyId).toEqual(expect.any(String));
+    await expect(
+      context.registerAccount().execute({
+        ...VALID_INPUT,
+        username: 'autrekoon',
+        email: 'William@Rakkoons.FR',
+      }),
+    ).rejects.toThrow(EmailAlreadyRegisteredError);
   });
 
   it('n échoue pas quand l envoi du message échoue', async () => {

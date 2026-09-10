@@ -111,7 +111,7 @@ describe('VerificationJourney', () => {
       id: 'journey-2',
       purpose: VerificationPurpose.SignUp,
       accountId: null,
-      codeHash: PasswordHash.fromStoredValue('hashed:secret-decoy'),
+      codeHash: PasswordHash.fromStoredValue('hashed:unmatched-secret'),
       maxAttempts: MAX_ATTEMPTS,
       codeExpiresAt: new Date(OPENED_AT.getTime() + 10 * MINUTE),
       expiresAt: new Date(OPENED_AT.getTime() + 15 * MINUTE),

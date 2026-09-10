@@ -59,15 +59,6 @@ describe('EmailMessageSender', () => {
     expect(transport.sent[0].text).toContain('429861');
   });
 
-  it('n envoie aucun code dans le message de tentative sur compte existant', async () => {
-    const transport = new RecordingTransport();
-    const { sender } = build(transport);
-
-    await sender.sendRegistrationAttemptOnExistingAccount(RECIPIENT);
-
-    expect(transport.sent[0].text).not.toMatch(/\b\d{6}\b/);
-  });
-
   it('journalise et absorbe un échec du transport', async () => {
     const { sender, logger } = build(new FailingTransport());
 

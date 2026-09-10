@@ -4,7 +4,6 @@ import { VerificationCode } from '@identity/domain/value-objects/verification-co
 
 export class RecordingMessageSender implements MessageSender {
   readonly registrationCodes: { recipient: string; code: string }[] = [];
-  readonly existingAccountNotices: string[] = [];
 
   sendRegistrationCode(
     recipient: EmailAddress,
@@ -14,13 +13,6 @@ export class RecordingMessageSender implements MessageSender {
       recipient: recipient.toString(),
       code: code.reveal(),
     });
-    return Promise.resolve();
-  }
-
-  sendRegistrationAttemptOnExistingAccount(
-    recipient: EmailAddress,
-  ): Promise<void> {
-    this.existingAccountNotices.push(recipient.toString());
     return Promise.resolve();
   }
 }

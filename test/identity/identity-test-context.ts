@@ -64,7 +64,6 @@ export class IdentityTestContext {
       }),
       codes: this.codes,
       identifiers: this.identifiers,
-      secrets: this.secrets,
       messages: this.messages,
       clock: this.clock,
       policy: TEST_REGISTRATION_POLICY,

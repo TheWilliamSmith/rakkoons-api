@@ -5,13 +5,11 @@ import { AccountRepository } from '../domain/ports/account-repository';
 import { Clock } from '../domain/ports/clock';
 import { MessageSender } from '../domain/ports/message-sender';
 import { IdentifierGenerator } from '../domain/ports/identifier-generator';
-import { SecretGenerator } from '../domain/ports/secret-generator';
 import { PasswordHasher } from '../domain/ports/password-hasher';
 import { UnitOfWork } from '../domain/ports/unit-of-work';
 import { VerificationCodeGenerator } from '../domain/ports/verification-code-generator';
 import { VerificationJourneyRepository } from '../domain/ports/verification-journey-repository';
 import { EmailAddress } from '../domain/value-objects/email-address';
-import { PasswordHash } from '../domain/value-objects/password-hash';
 import { PlainPassword } from '../domain/value-objects/plain-password';
 import { Username } from '../domain/value-objects/username';
 import { VerificationPurpose } from '../domain/verification/verification-purpose';
@@ -38,7 +36,6 @@ interface RegisterAccountDependencies {
   journeyOpener: VerificationJourneyOpener;
   codes: VerificationCodeGenerator;
   identifiers: IdentifierGenerator;
-  secrets: SecretGenerator;
   messages: MessageSender;
   clock: Clock;
   policy: RegistrationPolicy;
@@ -56,27 +53,16 @@ export class RegisterAccountUseCase {
       throw new UsernameAlreadyTakenError();
     }
 
-    const passwordHash = await this.dependencies.passwordHasher.hash(password);
-    const existing = await this.dependencies.accounts.findByEmail(email);
+    if ((await this.dependencies.accounts.findByEmail(email)) !== null) {
+      throw new EmailAlreadyRegisteredError();
+    }
+
     const openedAt = this.dependencies.clock.now();
-
-    return existing === null
-      ? this.openRegistration(username, email, passwordHash, input, openedAt)
-      : this.openDecoy(email, openedAt);
-  }
-
-  private async openRegistration(
-    username: Username,
-    email: EmailAddress,
-    passwordHash: PasswordHash,
-    input: RegisterAccountInput,
-    openedAt: Date,
-  ): Promise<RegisterAccountOutput> {
     const account = Account.register({
       id: this.dependencies.identifiers.generate(),
       username,
       email,
-      passwordHash,
+      passwordHash: await this.dependencies.passwordHasher.hash(password),
       hasAcceptedTerms: input.hasAcceptedTerms,
       termsVersion: this.dependencies.policy.termsVersion,
       registeredAt: openedAt,
@@ -90,50 +76,15 @@ export class RegisterAccountUseCase {
       openedAt,
     );
 
-    try {
-      await this.dependencies.unitOfWork.run(async () => {
-        await this.dependencies.accounts.add(account);
-        await this.dependencies.journeys.add(journey);
-      });
-    } catch (error) {
-      if (error instanceof EmailAlreadyRegisteredError) {
-        return this.openDecoy(email, openedAt);
-      }
-      throw error;
-    }
-
-    await this.dispatch(() =>
-      this.dependencies.messages.sendRegistrationCode(email, code),
-    );
-
-    return { journeyId: journey.id, journeyExpiresAt: journey.expiresAt };
-  }
-
-  private async openDecoy(
-    email: EmailAddress,
-    openedAt: Date,
-  ): Promise<RegisterAccountOutput> {
-    const journey = await this.dependencies.journeyOpener.open(
-      VerificationPurpose.SignUp,
-      null,
-      this.dependencies.secrets.generate(),
-      openedAt,
-    );
-
     await this.dependencies.unitOfWork.run(async () => {
+      await this.dependencies.accounts.add(account);
       await this.dependencies.journeys.add(journey);
     });
 
-    await this.dispatch(() =>
-      this.dependencies.messages.sendRegistrationAttemptOnExistingAccount(
-        email,
-      ),
-    );
+    await this.dependencies.messages
+      .sendRegistrationCode(email, code)
+      .catch(() => undefined);
 
     return { journeyId: journey.id, journeyExpiresAt: journey.expiresAt };
-  }
-
-  private async dispatch(send: () => Promise<void>): Promise<void> {
-    await send().catch(() => undefined);
   }
 }

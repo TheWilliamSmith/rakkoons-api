@@ -56,7 +56,7 @@ export const DOMAIN_ERROR_HTTP_MAP: Record<string, HttpFailure> = {
     reason: FailureReason.InvalidCode,
   },
   EmailAlreadyRegisteredError: {
-    status: HttpStatus.INTERNAL_SERVER_ERROR,
-    reason: FailureReason.Unavailable,
+    status: HttpStatus.CONFLICT,
+    reason: FailureReason.EmailTaken,
   },
 };

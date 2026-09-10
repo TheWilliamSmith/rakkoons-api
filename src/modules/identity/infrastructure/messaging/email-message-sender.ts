@@ -7,7 +7,6 @@ import { EmailAddress } from '../../domain/value-objects/email-address';
 import { VerificationCode } from '../../domain/value-objects/verification-code';
 import { IdentityToken } from '../../identity.tokens';
 import { type EmailContent, type EmailTransport } from './outbound-email';
-import { registrationAttemptEmail } from './templates/registration-attempt.email';
 import { registrationCodeEmail } from './templates/registration-code.email';
 
 @Injectable()
@@ -32,12 +31,6 @@ export class EmailMessageSender implements MessageSender {
         this.config.get('SIGNUP_CODE_TTL_MINUTES', { infer: true }),
       ),
     );
-  }
-
-  sendRegistrationAttemptOnExistingAccount(
-    recipient: EmailAddress,
-  ): Promise<void> {
-    return this.dispatch(recipient, registrationAttemptEmail());
   }
 
   private async dispatch(

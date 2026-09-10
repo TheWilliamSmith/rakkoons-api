@@ -130,15 +130,26 @@ describe('Parcours d authentification (e2e)', () => {
       expect(response.body).toEqual({ error: { reason: 'username-taken' } });
     });
 
-    it('répond comme une inscription réussie sur une adresse déjà enregistrée', async () => {
-      const first = await signUp();
-      const second = await signUp({ username: 'autrekoon' }).expect(201);
+    it('refuse une adresse déjà enregistrée avec 409 et email-taken', async () => {
+      await signUp();
 
-      expect(second.status).toBe(first.status);
-      expect(second.body).toEqual(first.body);
-      expect(cookieNamed(second, 'rk_signup')).not.toBeNull();
+      const response = await signUp({ username: 'autrekoon' }).expect(409);
+
+      expect(response.body).toEqual({ error: { reason: 'email-taken' } });
+      expect(cookieNamed(response, 'rk_signup')).toBeNull();
       expect(harness.messages.codes.size).toBe(1);
-      expect(harness.messages.existingAccountNotices).toEqual([EMAIL]);
+      expect(await harness.prisma.account.count()).toBe(1);
+    });
+
+    it('refuse une adresse déjà enregistrée écrite dans une autre casse', async () => {
+      await signUp();
+
+      const response = await signUp({
+        username: 'autrekoon',
+        email: 'William@Rakkoons.FR',
+      }).expect(409);
+
+      expect(response.body).toEqual({ error: { reason: 'email-taken' } });
       expect(await harness.prisma.account.count()).toBe(1);
     });
 

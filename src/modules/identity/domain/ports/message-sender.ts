@@ -6,7 +6,4 @@ export interface MessageSender {
     recipient: EmailAddress,
     code: VerificationCode,
   ): Promise<void>;
-  sendRegistrationAttemptOnExistingAccount(
-    recipient: EmailAddress,
-  ): Promise<void>;
 }

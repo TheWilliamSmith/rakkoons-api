@@ -2,6 +2,7 @@ export const FailureReason = {
   InvalidCredentials: 'invalid-credentials',
   InvalidCode: 'invalid-code',
   UsernameTaken: 'username-taken',
+  EmailTaken: 'email-taken',
   Unavailable: 'unavailable',
 } as const;
 
