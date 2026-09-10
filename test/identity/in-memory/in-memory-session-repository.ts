@@ -22,6 +22,41 @@ export class InMemorySessionRepository implements SessionRepository {
     );
   }
 
+  findByIdForAccount(id: string, accountId: string): Promise<Session | null> {
+    const session = this.sessions.get(id);
+
+    return Promise.resolve(
+      session !== undefined && session.accountId === accountId ? session : null,
+    );
+  }
+
+  listActiveForAccount(accountId: string, usableAt: Date): Promise<Session[]> {
+    return Promise.resolve(
+      [...this.sessions.values()]
+        .filter(
+          (session) =>
+            session.accountId === accountId && session.isUsableAt(usableAt),
+        )
+        .sort(
+          (one, other) => other.lastUsedAt.getTime() - one.lastUsedAt.getTime(),
+        ),
+    );
+  }
+
+  revokeAllForAccountExcept(
+    accountId: string,
+    keptSessionId: string,
+    revokedAt: Date,
+  ): Promise<void> {
+    for (const session of this.sessions.values()) {
+      if (session.accountId === accountId && session.id !== keptSessionId) {
+        session.revoke(revokedAt);
+      }
+    }
+
+    return Promise.resolve();
+  }
+
   revokeAllForAccount(accountId: string, revokedAt: Date): Promise<void> {
     for (const session of this.sessions.values()) {
       if (session.accountId === accountId) {

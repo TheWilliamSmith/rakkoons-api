@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { isUuid } from './uuid';
 import { PrismaTransactionContext } from '../../../../shared/infrastructure/prisma/prisma-transaction-context';
 import { SessionRepository } from '../../domain/ports/session-repository';
 import { Session } from '../../domain/session/session';
@@ -29,6 +30,51 @@ export class PrismaSessionRepository implements SessionRepository {
     });
 
     return record === null ? null : SessionMapper.toDomain(record);
+  }
+
+  async findByIdForAccount(
+    id: string,
+    accountId: string,
+  ): Promise<Session | null> {
+    if (!isUuid(id)) {
+      return null;
+    }
+
+    const record = await this.context.client().session.findFirst({
+      where: { id, accountId },
+      select: SESSION_SELECTION,
+    });
+
+    return record === null ? null : SessionMapper.toDomain(record);
+  }
+
+  async listActiveForAccount(
+    accountId: string,
+    usableAt: Date,
+  ): Promise<Session[]> {
+    const records = await this.context.client().session.findMany({
+      where: {
+        accountId,
+        revokedAt: null,
+        expiresAt: { gt: usableAt },
+        absoluteExpiresAt: { gt: usableAt },
+      },
+      orderBy: { lastUsedAt: 'desc' },
+      select: SESSION_SELECTION,
+    });
+
+    return records.map((record) => SessionMapper.toDomain(record));
+  }
+
+  async revokeAllForAccountExcept(
+    accountId: string,
+    keptSessionId: string,
+    revokedAt: Date,
+  ): Promise<void> {
+    await this.context.client().session.updateMany({
+      where: { accountId, revokedAt: null, id: { not: keptSessionId } },
+      data: { revokedAt },
+    });
   }
 
   async revokeAllForAccount(accountId: string, revokedAt: Date): Promise<void> {

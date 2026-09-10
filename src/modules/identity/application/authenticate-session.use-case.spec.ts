@@ -47,7 +47,11 @@ describe('AuthenticateSessionUseCase', () => {
       .authenticateSession()
       .execute({ sessionIdentifier: identifier });
 
-    expect(Object.keys(caller).sort()).toEqual(['accountId', 'username']);
+    expect(Object.keys(caller).sort()).toEqual([
+      'accountId',
+      'sessionId',
+      'username',
+    ]);
     expect(caller.username).toBe(USERNAME);
     expect(typeof caller.accountId).toBe('string');
   });

@@ -2,14 +2,14 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { type Env } from '../../../config/env.validation';
-import { EmailRateLimiter } from './email-rate-limiter';
+import { SubjectRateLimiter } from './subject-rate-limiter';
 
 const THROTTLER_KEY = 'sign-in-account';
 
 @Injectable()
 export class SignInAccountThrottlerGuard implements CanActivate {
   constructor(
-    private readonly limiter: EmailRateLimiter,
+    private readonly limiter: SubjectRateLimiter,
     private readonly config: ConfigService<Env, true>,
   ) {}
 

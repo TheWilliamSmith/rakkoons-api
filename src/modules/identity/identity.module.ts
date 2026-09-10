@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthenticateSessionUseCase } from './application/authenticate-session.use-case';
+import { ChangePasswordUseCase } from './application/change-password.use-case';
+import { ChangeUsernameUseCase } from './application/change-username.use-case';
+import { ListAccountSessionsUseCase } from './application/list-account-sessions.use-case';
+import { ReadAccountUseCase } from './application/read-account.use-case';
+import { RevokeAccountSessionUseCase } from './application/revoke-account-session.use-case';
 import { CheckUsernameAvailabilityUseCase } from './application/check-username-availability.use-case';
 import { ConfirmPasswordResetUseCase } from './application/confirm-password-reset.use-case';
 import { ConfirmRegistrationUseCase } from './application/confirm-registration.use-case';
@@ -20,8 +25,13 @@ import { VerifySignInCodeUseCase } from './application/verify-sign-in-code.use-c
 import { IdentityToken } from './identity.tokens';
 import { IDENTITY_ADAPTERS } from './identity.adapters';
 import { IDENTITY_USE_CASE_PROVIDERS } from './identity.use-cases';
+import { AccountController } from './presentation/account.controller';
+import {
+  PasswordChangeThrottlerGuard,
+  UsernameChangeThrottlerGuard,
+} from './presentation/account-throttler.guard';
 import { AuthController } from './presentation/auth.controller';
-import { EmailRateLimiter } from './presentation/email-rate-limiter';
+import { SubjectRateLimiter } from './presentation/subject-rate-limiter';
 import { IdentityCookies } from './presentation/identity-cookies';
 import { PasswordResetAccountThrottlerGuard } from './presentation/password-reset-account-throttler.guard';
 import { PasswordResetController } from './presentation/password-reset.controller';
@@ -40,15 +50,18 @@ const MILLISECONDS_PER_DAY = 24 * 60 * MILLISECONDS_PER_MINUTE;
     PasswordResetController,
     SignInCodeController,
     SessionController,
+    AccountController,
   ],
   providers: [
     ...IDENTITY_ADAPTERS,
     ...IDENTITY_USE_CASE_PROVIDERS,
     IdentityCookies,
     SessionGuard,
-    EmailRateLimiter,
+    SubjectRateLimiter,
     SignInAccountThrottlerGuard,
     PasswordResetAccountThrottlerGuard,
+    UsernameChangeThrottlerGuard,
+    PasswordChangeThrottlerGuard,
     {
       provide: IdentityToken.RegistrationPolicy,
       inject: [ConfigService],
@@ -121,6 +134,11 @@ const MILLISECONDS_PER_DAY = 24 * 60 * MILLISECONDS_PER_MINUTE;
     VerifySignInCodeUseCase,
     AuthenticateSessionUseCase,
     RevokeSessionUseCase,
+    ReadAccountUseCase,
+    ChangeUsernameUseCase,
+    ChangePasswordUseCase,
+    ListAccountSessionsUseCase,
+    RevokeAccountSessionUseCase,
   ],
 })
 export class IdentityModule {}

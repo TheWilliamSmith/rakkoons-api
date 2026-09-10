@@ -3,6 +3,7 @@ import { Request } from 'express';
 
 export interface AuthenticatedCaller {
   accountId: string;
+  sessionId: string;
   username: string;
 }
 

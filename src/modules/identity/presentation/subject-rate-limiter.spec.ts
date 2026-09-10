@@ -1,5 +1,5 @@
 import { ThrottlerException } from '@nestjs/throttler';
-import { EmailRateLimiter } from './email-rate-limiter';
+import { SubjectRateLimiter } from './subject-rate-limiter';
 
 const WINDOW_SECONDS = 60;
 const LIMIT = 3;
@@ -17,17 +17,17 @@ class CountingStorage {
   }
 }
 
-function build(): { limiter: EmailRateLimiter; storage: CountingStorage } {
+function build(): { limiter: SubjectRateLimiter; storage: CountingStorage } {
   const storage = new CountingStorage();
   const config = { get: (): number => WINDOW_SECONDS };
 
   return {
-    limiter: new EmailRateLimiter(storage as never, config as never),
+    limiter: new SubjectRateLimiter(storage as never, config as never),
     storage,
   };
 }
 
-describe('EmailRateLimiter', () => {
+describe('SubjectRateLimiter', () => {
   it('bloque au delà du seuil pour une même adresse', async () => {
     const { limiter } = build();
 

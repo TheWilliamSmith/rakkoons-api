@@ -1,5 +1,10 @@
 import { Provider } from '@nestjs/common';
 import { AuthenticateSessionUseCase } from './application/authenticate-session.use-case';
+import { ChangePasswordUseCase } from './application/change-password.use-case';
+import { ChangeUsernameUseCase } from './application/change-username.use-case';
+import { ListAccountSessionsUseCase } from './application/list-account-sessions.use-case';
+import { ReadAccountUseCase } from './application/read-account.use-case';
+import { RevokeAccountSessionUseCase } from './application/revoke-account-session.use-case';
 import { CheckUsernameAvailabilityUseCase } from './application/check-username-availability.use-case';
 import { ConfirmPasswordResetUseCase } from './application/confirm-password-reset.use-case';
 import { ConfirmRegistrationUseCase } from './application/confirm-registration.use-case';
@@ -340,6 +345,62 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
       clock: Clock,
     ): RevokeSessionUseCase =>
       new RevokeSessionUseCase({ sessions, secretHasher, clock }),
+  },
+  {
+    provide: ReadAccountUseCase,
+    inject: [IdentityToken.AccountRepository],
+    useFactory: (accounts: AccountRepository): ReadAccountUseCase =>
+      new ReadAccountUseCase(accounts),
+  },
+  {
+    provide: ChangeUsernameUseCase,
+    inject: [IdentityToken.AccountRepository, IdentityToken.Clock],
+    useFactory: (
+      accounts: AccountRepository,
+      clock: Clock,
+    ): ChangeUsernameUseCase => new ChangeUsernameUseCase({ accounts, clock }),
+  },
+  {
+    provide: ChangePasswordUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.SessionRepository,
+      IdentityToken.UnitOfWork,
+      IdentityToken.PasswordHasher,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      sessions: SessionRepository,
+      unitOfWork: UnitOfWork,
+      passwordHasher: PasswordHasher,
+      clock: Clock,
+    ): ChangePasswordUseCase =>
+      new ChangePasswordUseCase({
+        accounts,
+        sessions,
+        unitOfWork,
+        passwordHasher,
+        clock,
+      }),
+  },
+  {
+    provide: ListAccountSessionsUseCase,
+    inject: [IdentityToken.SessionRepository, IdentityToken.Clock],
+    useFactory: (
+      sessions: SessionRepository,
+      clock: Clock,
+    ): ListAccountSessionsUseCase =>
+      new ListAccountSessionsUseCase({ sessions, clock }),
+  },
+  {
+    provide: RevokeAccountSessionUseCase,
+    inject: [IdentityToken.SessionRepository, IdentityToken.Clock],
+    useFactory: (
+      sessions: SessionRepository,
+      clock: Clock,
+    ): RevokeAccountSessionUseCase =>
+      new RevokeAccountSessionUseCase({ sessions, clock }),
   },
   {
     provide: OpenSessionUseCase,

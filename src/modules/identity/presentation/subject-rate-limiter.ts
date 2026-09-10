@@ -7,23 +7,30 @@ import { type Env } from '../../../config/env.validation';
 const MILLISECONDS_PER_SECOND = 1000;
 
 @Injectable()
-export class EmailRateLimiter {
+export class SubjectRateLimiter {
   constructor(
     @Inject(ThrottlerStorage) private readonly storage: ThrottlerStorage,
     private readonly config: ConfigService<Env, true>,
   ) {}
 
-  async consume(bucket: string, email: unknown, limit: number): Promise<void> {
-    if (typeof email !== 'string' || email.length === 0) {
+  async consume(
+    bucket: string,
+    subject: unknown,
+    limit: number,
+    windowSeconds?: number,
+  ): Promise<void> {
+    if (typeof subject !== 'string' || subject.length === 0) {
       return;
     }
 
-    const window =
-      this.config.get('RATE_LIMIT_WINDOW_SECONDS', { infer: true }) *
-      MILLISECONDS_PER_SECOND;
+    const seconds =
+      windowSeconds === undefined
+        ? this.config.get('RATE_LIMIT_WINDOW_SECONDS', { infer: true })
+        : windowSeconds;
+    const window = seconds * MILLISECONDS_PER_SECOND;
 
     const record = await this.storage.increment(
-      `${bucket}:${fingerprint(email)}`,
+      `${bucket}:${fingerprint(subject)}`,
       window,
       limit,
       window,

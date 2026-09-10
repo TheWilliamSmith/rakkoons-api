@@ -25,7 +25,19 @@ export const DOMAIN_ERROR_HTTP_MAP: Record<string, HttpFailure> = {
   },
   InvalidUsernameError: {
     status: HttpStatus.UNPROCESSABLE_ENTITY,
+    reason: FailureReason.InvalidUsername,
+  },
+  CurrentPasswordRejectedError: {
+    status: HttpStatus.FORBIDDEN,
     reason: FailureReason.InvalidCredentials,
+  },
+  PasswordUnchangedError: {
+    status: HttpStatus.UNPROCESSABLE_ENTITY,
+    reason: FailureReason.InvalidCredentials,
+  },
+  SessionNotFoundError: {
+    status: HttpStatus.NOT_FOUND,
+    reason: FailureReason.NotFound,
   },
   WeakPasswordError: {
     status: HttpStatus.UNPROCESSABLE_ENTITY,

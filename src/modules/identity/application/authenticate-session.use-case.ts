@@ -13,6 +13,7 @@ export interface AuthenticateSessionInput {
 
 export interface AuthenticateSessionOutput {
   accountId: string;
+  sessionId: string;
   username: string;
 }
 
@@ -40,7 +41,11 @@ export class AuthenticateSessionUseCase {
     session.extend(usedAt, this.dependencies.policy.slidingLifetime);
     await this.dependencies.sessions.save(session);
 
-    return { accountId: account.id, username: account.username.toString() };
+    return {
+      accountId: account.id,
+      sessionId: session.id,
+      username: account.username.toString(),
+    };
   }
 
   private async loadUsableSession(

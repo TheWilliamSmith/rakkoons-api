@@ -34,6 +34,21 @@ function openJourney(
   });
 }
 
+function openSession(
+  accountId: string,
+  digest: string,
+  openedAt: Date,
+): Session {
+  return Session.open({
+    id: randomUUID(),
+    accountId,
+    identifierHash: PasswordHash.fromStoredValue(digest),
+    slidingLifetime: 14 * DAY,
+    absoluteLifetime: 60 * DAY,
+    openedAt,
+  });
+}
+
 function buildAccount(username: string, email: string): Account {
   return Account.register({
     id: randomUUID(),
@@ -279,6 +294,103 @@ describe('Dépôts Prisma du module identité', () => {
         VerificationPurpose.SignIn,
       ),
     ).toBeNull();
+  });
+
+  it('rejette un renommage vers un nom déjà pris, quelle que soit la casse', async () => {
+    const owner = buildAccount('rakkoonette', 'william@rakkoons.fr');
+    const other = buildAccount('autrekoon', 'autre@rakkoons.fr');
+    await harness.accounts.add(owner);
+    await harness.accounts.add(other);
+
+    owner.changeUsername(Username.create('AutreKoon'), REGISTERED_AT);
+
+    await expect(harness.accounts.save(owner)).rejects.toThrow(
+      UsernameAlreadyTakenError,
+    );
+  });
+
+  it('accepte un renommage vers un nom libre', async () => {
+    const account = buildAccount('rakkoonette', 'william@rakkoons.fr');
+    await harness.accounts.add(account);
+
+    account.changeUsername(Username.create('rakkoonette2'), REGISTERED_AT);
+    await harness.accounts.save(account);
+
+    expect(
+      (await harness.accounts.findById(account.id))?.username.toString(),
+    ).toBe('rakkoonette2');
+  });
+
+  it('ne rend que les sessions actives du compte visé, la plus récente d abord', async () => {
+    const owner = buildAccount('rakkoonette', 'william@rakkoons.fr');
+    const other = buildAccount('autrekoon', 'autre@rakkoons.fr');
+    await harness.accounts.add(owner);
+    await harness.accounts.add(other);
+
+    const older = openSession(owner.id, 'digest-ancienne', REGISTERED_AT);
+    const newer = openSession(
+      owner.id,
+      'digest-recente',
+      new Date(REGISTERED_AT.getTime() + MINUTE),
+    );
+    const revoked = openSession(owner.id, 'digest-revoquee', REGISTERED_AT);
+    revoked.revoke(REGISTERED_AT);
+
+    for (const session of [older, newer, revoked]) {
+      await harness.sessions.add(session);
+    }
+    await harness.sessions.add(
+      openSession(other.id, 'digest-etrangere', REGISTERED_AT),
+    );
+
+    const listed = await harness.sessions.listActiveForAccount(
+      owner.id,
+      new Date(REGISTERED_AT.getTime() + 2 * MINUTE),
+    );
+
+    expect(listed.map((session) => session.id)).toEqual([newer.id, older.id]);
+  });
+
+  it('ne retrouve pas une session appartenant à un autre compte', async () => {
+    const owner = buildAccount('rakkoonette', 'william@rakkoons.fr');
+    const other = buildAccount('autrekoon', 'autre@rakkoons.fr');
+    await harness.accounts.add(owner);
+    await harness.accounts.add(other);
+
+    const foreign = openSession(other.id, 'digest-etrangere', REGISTERED_AT);
+    await harness.sessions.add(foreign);
+
+    expect(
+      await harness.sessions.findByIdForAccount(foreign.id, owner.id),
+    ).toBeNull();
+    expect(
+      await harness.sessions.findByIdForAccount(foreign.id, other.id),
+    ).not.toBeNull();
+  });
+
+  it('révoque toutes les sessions du compte sauf celle qui est conservée', async () => {
+    const account = buildAccount('rakkoonette', 'william@rakkoons.fr');
+    await harness.accounts.add(account);
+
+    const kept = openSession(account.id, 'digest-gardee', REGISTERED_AT);
+    const dropped = openSession(account.id, 'digest-coupee', REGISTERED_AT);
+    await harness.sessions.add(kept);
+    await harness.sessions.add(dropped);
+
+    await harness.sessions.revokeAllForAccountExcept(
+      account.id,
+      kept.id,
+      new Date(REGISTERED_AT.getTime() + MINUTE),
+    );
+
+    expect(
+      (await harness.sessions.findByIdForAccount(kept.id, account.id))
+        ?.revokedAt,
+    ).toBeNull();
+    expect(
+      (await harness.sessions.findByIdForAccount(dropped.id, account.id))
+        ?.revokedAt,
+    ).not.toBeNull();
   });
 
   it('écrit puis relit une session à l identique', async () => {

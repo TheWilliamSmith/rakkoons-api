@@ -1,4 +1,9 @@
 import { AuthenticateSessionUseCase } from '@identity/application/authenticate-session.use-case';
+import { ChangePasswordUseCase } from '@identity/application/change-password.use-case';
+import { ChangeUsernameUseCase } from '@identity/application/change-username.use-case';
+import { ListAccountSessionsUseCase } from '@identity/application/list-account-sessions.use-case';
+import { ReadAccountUseCase } from '@identity/application/read-account.use-case';
+import { RevokeAccountSessionUseCase } from '@identity/application/revoke-account-session.use-case';
 import { CheckUsernameAvailabilityUseCase } from '@identity/application/check-username-availability.use-case';
 import { ConfirmPasswordResetUseCase } from '@identity/application/confirm-password-reset.use-case';
 import { ConfirmRegistrationUseCase } from '@identity/application/confirm-registration.use-case';
@@ -183,6 +188,41 @@ export class IdentityTestContext {
     return new RevokeSessionUseCase({
       sessions: this.sessions,
       secretHasher: this.secretHasher,
+      clock: this.clock,
+    });
+  }
+
+  readAccount(): ReadAccountUseCase {
+    return new ReadAccountUseCase(this.accounts);
+  }
+
+  changeUsername(): ChangeUsernameUseCase {
+    return new ChangeUsernameUseCase({
+      accounts: this.accounts,
+      clock: this.clock,
+    });
+  }
+
+  changePassword(): ChangePasswordUseCase {
+    return new ChangePasswordUseCase({
+      accounts: this.accounts,
+      sessions: this.sessions,
+      unitOfWork: this.unitOfWork,
+      passwordHasher: this.passwordHasher,
+      clock: this.clock,
+    });
+  }
+
+  listAccountSessions(): ListAccountSessionsUseCase {
+    return new ListAccountSessionsUseCase({
+      sessions: this.sessions,
+      clock: this.clock,
+    });
+  }
+
+  revokeAccountSession(): RevokeAccountSessionUseCase {
+    return new RevokeAccountSessionUseCase({
+      sessions: this.sessions,
       clock: this.clock,
     });
   }
