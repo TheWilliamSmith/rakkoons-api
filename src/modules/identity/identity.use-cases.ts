@@ -11,8 +11,11 @@ import {
 import { OpenSessionUseCase } from './application/open-session.use-case';
 import { RegisterAccountUseCase } from './application/register-account.use-case';
 import { RequestPasswordResetUseCase } from './application/request-password-reset.use-case';
+import { RequestSignInCodeUseCase } from './application/request-sign-in-code.use-case';
+import { SessionOpener } from './application/session-opener';
 import { VerificationJourneyOpener } from './application/verification-journey-opener';
 import { VerifyPasswordResetCodeUseCase } from './application/verify-password-reset-code.use-case';
+import { VerifySignInCodeUseCase } from './application/verify-sign-in-code.use-case';
 import { type AccountRepository } from './domain/ports/account-repository';
 import { type Clock } from './domain/ports/clock';
 import { type IdentifierGenerator } from './domain/ports/identifier-generator';
@@ -21,6 +24,7 @@ import { type PasswordHasher } from './domain/ports/password-hasher';
 import { type SecretGenerator } from './domain/ports/secret-generator';
 import { type SecretHasher } from './domain/ports/secret-hasher';
 import { type SessionRepository } from './domain/ports/session-repository';
+import { type SignInCodeThrottle } from './domain/ports/sign-in-code-throttle';
 import { type UnitOfWork } from './domain/ports/unit-of-work';
 import { type VerificationCodeGenerator } from './domain/ports/verification-code-generator';
 import { type VerificationJourneyRepository } from './domain/ports/verification-journey-repository';
@@ -49,9 +53,103 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
     IdentityToken.RegistrationPolicy,
   ),
   journeyOpenerProvider(
+    IdentityToken.SignInCodeJourneyOpener,
+    IdentityToken.SignInCodePolicy,
+  ),
+  journeyOpenerProvider(
     IdentityToken.PasswordResetJourneyOpener,
     IdentityToken.PasswordResetPolicy,
   ),
+  {
+    provide: SessionOpener,
+    inject: [
+      IdentityToken.SessionRepository,
+      IdentityToken.SecretHasher,
+      IdentityToken.IdentifierGenerator,
+      IdentityToken.SecretGenerator,
+      IdentityToken.Clock,
+      IdentityToken.SessionPolicy,
+    ],
+    useFactory: (
+      sessions: SessionRepository,
+      secretHasher: SecretHasher,
+      identifiers: IdentifierGenerator,
+      secrets: SecretGenerator,
+      clock: Clock,
+      policy: SessionPolicy,
+    ): SessionOpener =>
+      new SessionOpener({
+        sessions,
+        secretHasher,
+        identifiers,
+        secrets,
+        clock,
+        policy,
+      }),
+  },
+  {
+    provide: RequestSignInCodeUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.VerificationJourneyRepository,
+      IdentityToken.UnitOfWork,
+      IdentityToken.SignInCodeJourneyOpener,
+      IdentityToken.VerificationCodeGenerator,
+      IdentityToken.SecretGenerator,
+      IdentityToken.SignInCodeThrottle,
+      IdentityToken.MessageSender,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      journeys: VerificationJourneyRepository,
+      unitOfWork: UnitOfWork,
+      journeyOpener: VerificationJourneyOpener,
+      codes: VerificationCodeGenerator,
+      secrets: SecretGenerator,
+      throttle: SignInCodeThrottle,
+      messages: MessageSender,
+      clock: Clock,
+    ): RequestSignInCodeUseCase =>
+      new RequestSignInCodeUseCase({
+        accounts,
+        journeys,
+        unitOfWork,
+        journeyOpener,
+        codes,
+        secrets,
+        throttle,
+        messages,
+        clock,
+      }),
+  },
+  {
+    provide: VerifySignInCodeUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.VerificationJourneyRepository,
+      IdentityToken.UnitOfWork,
+      SessionOpener,
+      IdentityToken.SecretHasher,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      journeys: VerificationJourneyRepository,
+      unitOfWork: UnitOfWork,
+      sessionOpener: SessionOpener,
+      secretHasher: SecretHasher,
+      clock: Clock,
+    ): VerifySignInCodeUseCase =>
+      new VerifySignInCodeUseCase({
+        accounts,
+        journeys,
+        unitOfWork,
+        sessionOpener,
+        secretHasher,
+        clock,
+      }),
+  },
   {
     provide: CheckUsernameAvailabilityUseCase,
     inject: [IdentityToken.AccountRepository],
@@ -207,33 +305,14 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
     provide: OpenSessionUseCase,
     inject: [
       IdentityToken.AccountRepository,
-      IdentityToken.SessionRepository,
       IdentityToken.PasswordHasher,
-      IdentityToken.SecretHasher,
-      IdentityToken.IdentifierGenerator,
-      IdentityToken.SecretGenerator,
-      IdentityToken.Clock,
-      IdentityToken.SessionPolicy,
+      SessionOpener,
     ],
     useFactory: (
       accounts: AccountRepository,
-      sessions: SessionRepository,
       passwordHasher: PasswordHasher,
-      secretHasher: SecretHasher,
-      identifiers: IdentifierGenerator,
-      secrets: SecretGenerator,
-      clock: Clock,
-      policy: SessionPolicy,
+      sessionOpener: SessionOpener,
     ): OpenSessionUseCase =>
-      new OpenSessionUseCase({
-        accounts,
-        sessions,
-        passwordHasher,
-        secretHasher,
-        identifiers,
-        secrets,
-        clock,
-        policy,
-      }),
+      new OpenSessionUseCase({ accounts, passwordHasher, sessionOpener }),
   },
 ];

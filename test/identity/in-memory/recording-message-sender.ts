@@ -9,6 +9,7 @@ export interface RecordedCode {
 
 export class RecordingMessageSender implements MessageSender {
   readonly registrationCodes: RecordedCode[] = [];
+  readonly signInCodes: RecordedCode[] = [];
   readonly passwordResetCodes: RecordedCode[] = [];
 
   sendRegistrationCode(
@@ -16,6 +17,14 @@ export class RecordingMessageSender implements MessageSender {
     code: VerificationCode,
   ): Promise<void> {
     this.registrationCodes.push(record(recipient, code));
+    return Promise.resolve();
+  }
+
+  sendSignInCode(
+    recipient: EmailAddress,
+    code: VerificationCode,
+  ): Promise<void> {
+    this.signInCodes.push(record(recipient, code));
     return Promise.resolve();
   }
 

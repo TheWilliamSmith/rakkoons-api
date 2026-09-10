@@ -20,6 +20,20 @@ export class InMemoryVerificationJourneyRepository implements VerificationJourne
     return Promise.resolve();
   }
 
+  findActiveForAccount(
+    accountId: string,
+    purpose: VerificationPurpose,
+  ): Promise<VerificationJourney | null> {
+    const matches = [...this.journeys.values()].filter(
+      (journey) =>
+        journey.accountId === accountId &&
+        journey.purpose === purpose &&
+        !journey.isConsumed(),
+    );
+
+    return Promise.resolve(matches[matches.length - 1] ?? null);
+  }
+
   consumeActiveForAccount(
     accountId: string,
     purpose: VerificationPurpose,

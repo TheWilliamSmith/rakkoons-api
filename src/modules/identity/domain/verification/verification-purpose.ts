@@ -1,5 +1,6 @@
 export const VerificationPurpose = {
   SignUp: 'sign-up',
+  SignIn: 'sign-in',
   PasswordReset: 'password-reset',
 } as const;
 

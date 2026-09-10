@@ -1,5 +1,6 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
+import { ThrottlerStorage, ThrottlerStorageService } from '@nestjs/throttler';
 import { App } from 'supertest/types';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/shared/infrastructure/prisma/prisma.service';
@@ -12,6 +13,7 @@ import { VerificationCode } from '@identity/domain/value-objects/verification-co
 
 export class CapturingMessageSender implements MessageSender {
   readonly codes = new Map<string, string>();
+  readonly signInCodes = new Map<string, string>();
   readonly passwordResetCodes = new Map<string, string>();
   deliveryFails = false;
 
@@ -20,6 +22,13 @@ export class CapturingMessageSender implements MessageSender {
     code: VerificationCode,
   ): Promise<void> {
     return this.capture(this.codes, recipient, code);
+  }
+
+  sendSignInCode(
+    recipient: EmailAddress,
+    code: VerificationCode,
+  ): Promise<void> {
+    return this.capture(this.signInCodes, recipient, code);
   }
 
   sendPasswordResetCode(
@@ -48,6 +57,7 @@ export class AuthE2eHarness {
 
   readonly messages = new CapturingMessageSender();
   prisma!: PrismaService;
+  private throttlerStorage!: ThrottlerStorage;
 
   async start(): Promise<void> {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
@@ -64,6 +74,13 @@ export class AuthE2eHarness {
 
     this.nestApplication = application;
     this.prisma = application.get(PrismaService);
+    this.throttlerStorage = application.get(ThrottlerStorage);
+  }
+
+  forgetRateLimits(): void {
+    if (this.throttlerStorage instanceof ThrottlerStorageService) {
+      this.throttlerStorage.storage.clear();
+    }
   }
 
   server(): App {
@@ -79,6 +96,7 @@ export class AuthE2eHarness {
     await this.prisma.verificationJourney.deleteMany();
     await this.prisma.account.deleteMany();
     this.messages.codes.clear();
+    this.messages.signInCodes.clear();
     this.messages.passwordResetCodes.clear();
     this.messages.deliveryFails = false;
   }

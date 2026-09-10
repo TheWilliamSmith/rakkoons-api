@@ -10,6 +10,7 @@ import { IdentityToken } from '../../identity.tokens';
 import { type EmailContent, type EmailTransport } from './outbound-email';
 import { passwordResetCodeEmail } from './templates/password-reset-code.email';
 import { registrationCodeEmail } from './templates/registration-code.email';
+import { signInCodeEmail } from './templates/sign-in-code.email';
 
 @Injectable()
 export class EmailMessageSender implements MessageSender {
@@ -31,6 +32,19 @@ export class EmailMessageSender implements MessageSender {
       registrationCodeEmail(
         code.reveal(),
         this.config.get('SIGNUP_CODE_TTL_MINUTES', { infer: true }),
+      ),
+    );
+  }
+
+  sendSignInCode(
+    recipient: EmailAddress,
+    code: VerificationCode,
+  ): Promise<void> {
+    return this.dispatch(
+      recipient,
+      signInCodeEmail(
+        code.reveal(),
+        this.config.get('SIGNIN_CODE_TTL_MINUTES', { infer: true }),
       ),
     );
   }

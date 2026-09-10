@@ -4,7 +4,7 @@ import { VerificationPurpose } from '../../domain/verification/verification-purp
 
 export interface VerificationJourneyRecord {
   id: string;
-  purpose: 'SIGN_UP' | 'PASSWORD_RESET';
+  purpose: 'SIGN_UP' | 'SIGN_IN' | 'PASSWORD_RESET';
   accountId: string | null;
   codeHash: string;
   attemptsLeft: number;
@@ -20,6 +20,7 @@ const PURPOSE_TO_DOMAIN: Record<
   VerificationPurpose
 > = {
   SIGN_UP: VerificationPurpose.SignUp,
+  SIGN_IN: VerificationPurpose.SignIn,
   PASSWORD_RESET: VerificationPurpose.PasswordReset,
 };
 
@@ -28,6 +29,7 @@ const PURPOSE_TO_RECORD: Record<
   VerificationJourneyRecord['purpose']
 > = {
   [VerificationPurpose.SignUp]: 'SIGN_UP',
+  [VerificationPurpose.SignIn]: 'SIGN_IN',
   [VerificationPurpose.PasswordReset]: 'PASSWORD_RESET',
 };
 

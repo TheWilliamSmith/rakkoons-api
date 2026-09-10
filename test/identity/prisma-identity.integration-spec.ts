@@ -237,6 +237,50 @@ describe('Dépôts Prisma du module identité', () => {
     );
   });
 
+  it('retrouve le parcours en cours d un compte pour une intention donnée', async () => {
+    const owner = buildAccount('rakkoonette', 'william@rakkoons.fr');
+    const other = buildAccount('autrekoon', 'autre@rakkoons.fr');
+    await harness.accounts.add(owner);
+    await harness.accounts.add(other);
+
+    const signIn = openJourney(owner.id, VerificationPurpose.SignIn);
+    await harness.journeys.add(signIn);
+    await harness.journeys.add(
+      openJourney(owner.id, VerificationPurpose.SignUp),
+    );
+    await harness.journeys.add(
+      openJourney(other.id, VerificationPurpose.SignIn),
+    );
+
+    const found = await harness.journeys.findActiveForAccount(
+      owner.id,
+      VerificationPurpose.SignIn,
+    );
+
+    expect(found?.id).toBe(signIn.id);
+  });
+
+  it('ne retrouve plus un parcours de connexion consommé', async () => {
+    const account = buildAccount('rakkoonette', 'william@rakkoons.fr');
+    await harness.accounts.add(account);
+    await harness.journeys.add(
+      openJourney(account.id, VerificationPurpose.SignIn),
+    );
+
+    await harness.journeys.consumeActiveForAccount(
+      account.id,
+      VerificationPurpose.SignIn,
+      new Date(REGISTERED_AT.getTime() + MINUTE),
+    );
+
+    expect(
+      await harness.journeys.findActiveForAccount(
+        account.id,
+        VerificationPurpose.SignIn,
+      ),
+    ).toBeNull();
+  });
+
   it('écrit puis relit une session à l identique', async () => {
     const account = buildAccount('rakkoonette', 'william@rakkoons.fr');
     await harness.accounts.add(account);

@@ -102,6 +102,13 @@ const PRETTY_LOG_MESSAGE_FORMAT =
               limit: config.get('RATE_LIMIT_SIGN_IN_PER_IP', { infer: true }),
             },
             {
+              name: ThrottlerName.SignInCodeVerify,
+              ttl,
+              limit: config.get('RATE_LIMIT_SIGNIN_CODE_VERIFY', {
+                infer: true,
+              }),
+            },
+            {
               name: ThrottlerName.PasswordReset,
               ttl,
               limit: config.get('RATE_LIMIT_PASSWORD_RESET_PER_IP', {

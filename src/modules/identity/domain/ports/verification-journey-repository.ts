@@ -5,6 +5,10 @@ export interface VerificationJourneyRepository {
   findById(id: string): Promise<VerificationJourney | null>;
   add(journey: VerificationJourney): Promise<void>;
   save(journey: VerificationJourney): Promise<void>;
+  findActiveForAccount(
+    accountId: string,
+    purpose: VerificationPurpose,
+  ): Promise<VerificationJourney | null>;
   consumeActiveForAccount(
     accountId: string,
     purpose: VerificationPurpose,

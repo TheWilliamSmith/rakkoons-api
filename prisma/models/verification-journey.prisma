@@ -1,5 +1,6 @@
 enum VerificationPurpose {
     SIGN_UP
+    SIGN_IN
     PASSWORD_RESET
 
     @@map("verification_purpose")

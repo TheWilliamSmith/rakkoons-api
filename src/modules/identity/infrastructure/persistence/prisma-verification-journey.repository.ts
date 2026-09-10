@@ -40,6 +40,23 @@ export class PrismaVerificationJourneyRepository implements VerificationJourneyR
       .verificationJourney.update({ where: { id: record.id }, data: record });
   }
 
+  async findActiveForAccount(
+    accountId: string,
+    purpose: VerificationPurpose,
+  ): Promise<VerificationJourney | null> {
+    const record = await this.context.client().verificationJourney.findFirst({
+      where: {
+        accountId,
+        purpose: VerificationJourneyMapper.toRecordPurpose(purpose),
+        consumedAt: null,
+      },
+      orderBy: { createdAt: 'desc' },
+      select: VERIFICATION_JOURNEY_SELECTION,
+    });
+
+    return record === null ? null : VerificationJourneyMapper.toDomain(record);
+  }
+
   async consumeActiveForAccount(
     accountId: string,
     purpose: VerificationPurpose,

@@ -10,6 +10,8 @@ export interface RegistrationPolicy extends VerificationPolicy {
 
 export type PasswordResetPolicy = VerificationPolicy;
 
+export type SignInCodePolicy = VerificationPolicy;
+
 export interface SessionPolicy {
   readonly slidingLifetime: number;
   readonly absoluteLifetime: number;

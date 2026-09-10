@@ -104,6 +104,15 @@ export class Account {
     this.state.updatedAt = activatedAt;
   }
 
+  confirmEmailPossession(confirmedAt: Date): void {
+    if (this.isActive()) {
+      return;
+    }
+
+    this.state.status = AccountStatus.Active;
+    this.state.updatedAt = confirmedAt;
+  }
+
   changePassword(passwordHash: PasswordHash, changedAt: Date): void {
     this.state.passwordHash = passwordHash;
     this.state.updatedAt = changedAt;

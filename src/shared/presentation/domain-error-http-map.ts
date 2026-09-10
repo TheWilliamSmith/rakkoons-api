@@ -59,6 +59,14 @@ export const DOMAIN_ERROR_HTTP_MAP: Record<string, HttpFailure> = {
     status: HttpStatus.CONFLICT,
     reason: FailureReason.EmailTaken,
   },
+  SignInCodeRejectedError: {
+    status: HttpStatus.BAD_REQUEST,
+    reason: FailureReason.InvalidCode,
+  },
+  SignInAttemptsExhaustedError: {
+    status: HttpStatus.BAD_REQUEST,
+    reason: FailureReason.InvalidCode,
+  },
   PasswordResetCodeRejectedError: {
     status: HttpStatus.UNPROCESSABLE_ENTITY,
     reason: FailureReason.InvalidCode,

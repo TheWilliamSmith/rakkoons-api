@@ -14,6 +14,7 @@ import { Argon2PasswordHasher } from './infrastructure/security/argon2-password-
 import { RandomSecretGenerator } from './infrastructure/security/random-secret-generator';
 import { RandomVerificationCodeGenerator } from './infrastructure/security/random-verification-code-generator';
 import { Sha256SecretHasher } from './infrastructure/security/sha256-secret-hasher';
+import { ThrottlerSignInCodeThrottle } from './infrastructure/security/throttler-sign-in-code-throttle';
 import { UuidIdentifierGenerator } from './infrastructure/security/uuid-identifier-generator';
 import { SystemClock } from './infrastructure/time/system-clock';
 
@@ -72,5 +73,9 @@ export const IDENTITY_ADAPTERS: Provider[] = [
     },
   },
   { provide: IdentityToken.MessageSender, useClass: EmailMessageSender },
+  {
+    provide: IdentityToken.SignInCodeThrottle,
+    useClass: ThrottlerSignInCodeThrottle,
+  },
   { provide: IdentityToken.Clock, useClass: SystemClock },
 ];

@@ -5,6 +5,7 @@ export const ThrottlerName = {
   SignUp: 'sign-up',
   SignUpVerify: 'sign-up-verify',
   SignIn: 'sign-in',
+  SignInCodeVerify: 'sign-in-code-verify',
   PasswordReset: 'password-reset',
   PasswordResetVerify: 'password-reset-verify',
   PasswordResetConfirm: 'password-reset-confirm',

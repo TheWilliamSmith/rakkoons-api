@@ -5,13 +5,18 @@ import {
   PasswordResetPolicy,
   RegistrationPolicy,
   SessionPolicy,
+  SignInCodePolicy,
   VerificationPolicy,
 } from '@identity/application/identity-policy';
 import { OpenSessionUseCase } from '@identity/application/open-session.use-case';
 import { RegisterAccountUseCase } from '@identity/application/register-account.use-case';
 import { RequestPasswordResetUseCase } from '@identity/application/request-password-reset.use-case';
+import { RequestSignInCodeUseCase } from '@identity/application/request-sign-in-code.use-case';
+import { SessionOpener } from '@identity/application/session-opener';
 import { VerificationJourneyOpener } from '@identity/application/verification-journey-opener';
 import { VerifyPasswordResetCodeUseCase } from '@identity/application/verify-password-reset-code.use-case';
+import { VerifySignInCodeUseCase } from '@identity/application/verify-sign-in-code.use-case';
+import { AllowingSignInCodeThrottle } from './in-memory/allowing-sign-in-code-throttle';
 import { DirectUnitOfWork } from './in-memory/direct-unit-of-work';
 import { FixedVerificationCodeGenerator } from './in-memory/fixed-verification-code-generator';
 import { FrozenClock } from './in-memory/frozen-clock';
@@ -45,6 +50,12 @@ export const TEST_PASSWORD_RESET_POLICY: PasswordResetPolicy = {
   maxVerificationAttempts: 5,
 };
 
+export const TEST_SIGN_IN_CODE_POLICY: SignInCodePolicy = {
+  journeyLifetime: 15 * MINUTE,
+  codeLifetime: 10 * MINUTE,
+  maxVerificationAttempts: 5,
+};
+
 export const TEST_SESSION_POLICY: SessionPolicy = {
   slidingLifetime: 14 * DAY,
   absoluteLifetime: 60 * DAY,
@@ -62,6 +73,7 @@ export class IdentityTestContext {
   readonly messages = new RecordingMessageSender();
   readonly unitOfWork = new DirectUnitOfWork();
   readonly clock = new FrozenClock(TEST_INSTANT);
+  readonly signInCodeThrottle = new AllowingSignInCodeThrottle();
 
   registerAccount(): RegisterAccountUseCase {
     return new RegisterAccountUseCase({
@@ -125,8 +137,39 @@ export class IdentityTestContext {
   openSession(): OpenSessionUseCase {
     return new OpenSessionUseCase({
       accounts: this.accounts,
-      sessions: this.sessions,
       passwordHasher: this.passwordHasher,
+      sessionOpener: this.sessionOpener(),
+    });
+  }
+
+  requestSignInCode(): RequestSignInCodeUseCase {
+    return new RequestSignInCodeUseCase({
+      accounts: this.accounts,
+      journeys: this.journeys,
+      unitOfWork: this.unitOfWork,
+      journeyOpener: this.journeyOpener(TEST_SIGN_IN_CODE_POLICY),
+      codes: this.codes,
+      secrets: this.secrets,
+      throttle: this.signInCodeThrottle,
+      messages: this.messages,
+      clock: this.clock,
+    });
+  }
+
+  verifySignInCode(): VerifySignInCodeUseCase {
+    return new VerifySignInCodeUseCase({
+      accounts: this.accounts,
+      journeys: this.journeys,
+      unitOfWork: this.unitOfWork,
+      sessionOpener: this.sessionOpener(),
+      secretHasher: this.secretHasher,
+      clock: this.clock,
+    });
+  }
+
+  private sessionOpener(): SessionOpener {
+    return new SessionOpener({
+      sessions: this.sessions,
       secretHasher: this.secretHasher,
       identifiers: this.identifiers,
       secrets: this.secrets,

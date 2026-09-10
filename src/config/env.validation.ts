@@ -38,6 +38,8 @@ export const envSchema = z.object({
 
   SIGNUP_JOURNEY_TTL_MINUTES: durationInMinutes(15),
   SIGNUP_CODE_TTL_MINUTES: durationInMinutes(10),
+  SIGNIN_JOURNEY_TTL_MINUTES: durationInMinutes(15),
+  SIGNIN_CODE_TTL_MINUTES: durationInMinutes(10),
   PASSWORD_RESET_JOURNEY_TTL_MINUTES: durationInMinutes(15),
   PASSWORD_RESET_CODE_TTL_MINUTES: durationInMinutes(15),
   VERIFICATION_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
@@ -55,6 +57,14 @@ export const envSchema = z.object({
   RATE_LIMIT_SIGN_UP_VERIFY: rateLimit(10),
   RATE_LIMIT_SIGN_IN_PER_IP: rateLimit(10),
   RATE_LIMIT_SIGN_IN_PER_ACCOUNT: rateLimit(5),
+  SIGNIN_CODE_MIN_INTERVAL_SECONDS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(60),
+  RATE_LIMIT_SIGNIN_CODE_PER_ACCOUNT_HOURLY: rateLimit(5),
+  RATE_LIMIT_SIGNIN_CODE_ADDRESSES_PER_ORIGIN_HOURLY: rateLimit(10),
+  RATE_LIMIT_SIGNIN_CODE_VERIFY: rateLimit(10),
   RATE_LIMIT_PASSWORD_RESET_PER_IP: rateLimit(5),
   RATE_LIMIT_PASSWORD_RESET_PER_ACCOUNT: rateLimit(3),
   RATE_LIMIT_PASSWORD_RESET_VERIFY: rateLimit(10),
