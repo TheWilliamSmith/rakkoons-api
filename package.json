@@ -93,6 +93,9 @@
     ],
     "coverageDirectory": "coverage",
     "testEnvironment": "node",
+    "setupFiles": [
+      "<rootDir>/test/setup-unit.ts"
+    ],
     "moduleNameMapper": {
       "^@generated/(.*)$": "<rootDir>/src/generated/$1",
       "^@shared/(.*)$": "<rootDir>/src/shared/$1",

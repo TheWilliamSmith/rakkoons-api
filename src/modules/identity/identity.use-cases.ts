@@ -1,4 +1,5 @@
 import { Provider } from '@nestjs/common';
+import { AuthenticateSessionUseCase } from './application/authenticate-session.use-case';
 import { CheckUsernameAvailabilityUseCase } from './application/check-username-availability.use-case';
 import { ConfirmPasswordResetUseCase } from './application/confirm-password-reset.use-case';
 import { ConfirmRegistrationUseCase } from './application/confirm-registration.use-case';
@@ -12,6 +13,7 @@ import { OpenSessionUseCase } from './application/open-session.use-case';
 import { RegisterAccountUseCase } from './application/register-account.use-case';
 import { RequestPasswordResetUseCase } from './application/request-password-reset.use-case';
 import { RequestSignInCodeUseCase } from './application/request-sign-in-code.use-case';
+import { RevokeSessionUseCase } from './application/revoke-session.use-case';
 import { SessionOpener } from './application/session-opener';
 import { VerificationJourneyOpener } from './application/verification-journey-opener';
 import { VerifyPasswordResetCodeUseCase } from './application/verify-password-reset-code.use-case';
@@ -300,6 +302,44 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
         passwordHasher,
         clock,
       }),
+  },
+  {
+    provide: AuthenticateSessionUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.SessionRepository,
+      IdentityToken.SecretHasher,
+      IdentityToken.Clock,
+      IdentityToken.SessionPolicy,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      sessions: SessionRepository,
+      secretHasher: SecretHasher,
+      clock: Clock,
+      policy: SessionPolicy,
+    ): AuthenticateSessionUseCase =>
+      new AuthenticateSessionUseCase({
+        accounts,
+        sessions,
+        secretHasher,
+        clock,
+        policy,
+      }),
+  },
+  {
+    provide: RevokeSessionUseCase,
+    inject: [
+      IdentityToken.SessionRepository,
+      IdentityToken.SecretHasher,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      sessions: SessionRepository,
+      secretHasher: SecretHasher,
+      clock: Clock,
+    ): RevokeSessionUseCase =>
+      new RevokeSessionUseCase({ sessions, secretHasher, clock }),
   },
   {
     provide: OpenSessionUseCase,

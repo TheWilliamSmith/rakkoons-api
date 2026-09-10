@@ -3,6 +3,7 @@ import { Request } from 'express';
 
 export interface AuthenticatedCaller {
   accountId: string;
+  username: string;
 }
 
 export interface RequestWithCaller extends Request {

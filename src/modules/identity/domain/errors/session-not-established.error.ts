@@ -1,6 +1,6 @@
 import { DomainError } from '../../../../shared/domain/domain-error';
 
-export class AccountNotActivatedError extends DomainError {
+export class SessionNotEstablishedError extends DomainError {
   constructor() {
     super();
   }

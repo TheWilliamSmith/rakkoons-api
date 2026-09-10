@@ -1,3 +1,4 @@
+import { AuthenticateSessionUseCase } from '@identity/application/authenticate-session.use-case';
 import { CheckUsernameAvailabilityUseCase } from '@identity/application/check-username-availability.use-case';
 import { ConfirmPasswordResetUseCase } from '@identity/application/confirm-password-reset.use-case';
 import { ConfirmRegistrationUseCase } from '@identity/application/confirm-registration.use-case';
@@ -12,6 +13,7 @@ import { OpenSessionUseCase } from '@identity/application/open-session.use-case'
 import { RegisterAccountUseCase } from '@identity/application/register-account.use-case';
 import { RequestPasswordResetUseCase } from '@identity/application/request-password-reset.use-case';
 import { RequestSignInCodeUseCase } from '@identity/application/request-sign-in-code.use-case';
+import { RevokeSessionUseCase } from '@identity/application/revoke-session.use-case';
 import { SessionOpener } from '@identity/application/session-opener';
 import { VerificationJourneyOpener } from '@identity/application/verification-journey-opener';
 import { VerifyPasswordResetCodeUseCase } from '@identity/application/verify-password-reset-code.use-case';
@@ -162,6 +164,24 @@ export class IdentityTestContext {
       journeys: this.journeys,
       unitOfWork: this.unitOfWork,
       sessionOpener: this.sessionOpener(),
+      secretHasher: this.secretHasher,
+      clock: this.clock,
+    });
+  }
+
+  authenticateSession(): AuthenticateSessionUseCase {
+    return new AuthenticateSessionUseCase({
+      accounts: this.accounts,
+      sessions: this.sessions,
+      secretHasher: this.secretHasher,
+      clock: this.clock,
+      policy: TEST_SESSION_POLICY,
+    });
+  }
+
+  revokeSession(): RevokeSessionUseCase {
+    return new RevokeSessionUseCase({
+      sessions: this.sessions,
       secretHasher: this.secretHasher,
       clock: this.clock,
     });

@@ -15,9 +15,9 @@ export const DOMAIN_ERROR_HTTP_MAP: Record<string, HttpFailure> = {
     status: HttpStatus.UNAUTHORIZED,
     reason: FailureReason.InvalidCredentials,
   },
-  AccountNotActivatedError: {
+  SessionNotEstablishedError: {
     status: HttpStatus.UNAUTHORIZED,
-    reason: FailureReason.InvalidCredentials,
+    reason: FailureReason.Unauthenticated,
   },
   InvalidEmailAddressError: {
     status: HttpStatus.UNPROCESSABLE_ENTITY,
