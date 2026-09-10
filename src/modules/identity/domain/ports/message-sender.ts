@@ -6,4 +6,8 @@ export interface MessageSender {
     recipient: EmailAddress,
     code: VerificationCode,
   ): Promise<void>;
+  sendPasswordResetCode(
+    recipient: EmailAddress,
+    code: VerificationCode,
+  ): Promise<void>;
 }

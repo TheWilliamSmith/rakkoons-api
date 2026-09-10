@@ -5,6 +5,7 @@ import {
 } from '@test/identity/identity-test-context';
 import { AccountStatus } from '../domain/account/account-status';
 import { EmailAlreadyRegisteredError } from '../domain/errors/email-already-registered.error';
+import { MessageDeliveryFailedError } from '../domain/errors/message-delivery-failed.error';
 import { UsernameAlreadyTakenError } from '../domain/errors/username-already-taken.error';
 
 const VALID_INPUT = {
@@ -81,13 +82,14 @@ describe('RegisterAccountUseCase', () => {
     ).rejects.toThrow(EmailAlreadyRegisteredError);
   });
 
-  it('n échoue pas quand l envoi du message échoue', async () => {
+  it('remonte l échec d envoi du message sans perdre le compte créé', async () => {
     context.messages.sendRegistrationCode = (): Promise<void> =>
-      Promise.reject(new Error('smtp down'));
+      Promise.reject(new MessageDeliveryFailedError());
 
-    const output = await context.registerAccount().execute(VALID_INPUT);
+    await expect(
+      context.registerAccount().execute(VALID_INPUT),
+    ).rejects.toThrow(MessageDeliveryFailedError);
 
-    expect(typeof output.journeyId).toBe('string');
     expect(context.accounts.count()).toBe(1);
   });
 });

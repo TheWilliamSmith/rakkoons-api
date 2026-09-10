@@ -38,7 +38,7 @@ describe('Limitation de débit sur l authentification (e2e)', () => {
       .send({
         username: 'autrekoon',
         email: 'autre@rakkoons.fr',
-        password: 'MotDePasseQuiGagne1',
+        password: 'MotDePasseQuiGagne1!',
         hasAcceptedTerms: true,
       })
       .expect(201);

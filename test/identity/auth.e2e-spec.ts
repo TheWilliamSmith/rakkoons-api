@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { AUTH, AuthE2eHarness } from './auth-e2e-harness';
 
-const PASSWORD = 'MotDePasseQuiGagne1';
+const PASSWORD = 'MotDePasseQuiGagne1!';
 const EMAIL = 'william@rakkoons.fr';
 const USERNAME = 'rakkoonette';
 
@@ -290,7 +290,7 @@ describe('Parcours d authentification (e2e)', () => {
           .send({ email: 'inconnu@rakkoons.fr', password: PASSWORD }),
         request(harness.server())
           .post(`${AUTH}/sign-in`)
-          .send({ email: EMAIL, password: 'MauvaisMotDePasse1' }),
+          .send({ email: EMAIL, password: 'MauvaisMotDePasse1!' }),
         request(harness.server())
           .post(`${AUTH}/sign-in`)
           .send({ email: 'attente@rakkoons.fr', password: PASSWORD }),

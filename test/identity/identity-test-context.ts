@@ -1,12 +1,17 @@
 import { CheckUsernameAvailabilityUseCase } from '@identity/application/check-username-availability.use-case';
+import { ConfirmPasswordResetUseCase } from '@identity/application/confirm-password-reset.use-case';
 import { ConfirmRegistrationUseCase } from '@identity/application/confirm-registration.use-case';
 import {
+  PasswordResetPolicy,
   RegistrationPolicy,
   SessionPolicy,
+  VerificationPolicy,
 } from '@identity/application/identity-policy';
 import { OpenSessionUseCase } from '@identity/application/open-session.use-case';
 import { RegisterAccountUseCase } from '@identity/application/register-account.use-case';
+import { RequestPasswordResetUseCase } from '@identity/application/request-password-reset.use-case';
 import { VerificationJourneyOpener } from '@identity/application/verification-journey-opener';
+import { VerifyPasswordResetCodeUseCase } from '@identity/application/verify-password-reset-code.use-case';
 import { DirectUnitOfWork } from './in-memory/direct-unit-of-work';
 import { FixedVerificationCodeGenerator } from './in-memory/fixed-verification-code-generator';
 import { FrozenClock } from './in-memory/frozen-clock';
@@ -23,7 +28,8 @@ const MINUTE = 60 * 1000;
 const DAY = 24 * 60 * MINUTE;
 
 export const TEST_CODE = '429861';
-export const TEST_PASSWORD = 'MotDePasseQuiGagne1';
+export const TEST_PASSWORD = 'MotDePasseQuiGagne1!';
+export const TEST_NEW_PASSWORD = 'NouveauMotDePasse2?';
 export const TEST_INSTANT = new Date('2026-01-01T10:00:00.000Z');
 
 export const TEST_REGISTRATION_POLICY: RegistrationPolicy = {
@@ -31,6 +37,12 @@ export const TEST_REGISTRATION_POLICY: RegistrationPolicy = {
   codeLifetime: 10 * MINUTE,
   maxVerificationAttempts: 5,
   termsVersion: '2026-01',
+};
+
+export const TEST_PASSWORD_RESET_POLICY: PasswordResetPolicy = {
+  journeyLifetime: 15 * MINUTE,
+  codeLifetime: 15 * MINUTE,
+  maxVerificationAttempts: 5,
 };
 
 export const TEST_SESSION_POLICY: SessionPolicy = {
@@ -57,11 +69,7 @@ export class IdentityTestContext {
       journeys: this.journeys,
       unitOfWork: this.unitOfWork,
       passwordHasher: this.passwordHasher,
-      journeyOpener: new VerificationJourneyOpener({
-        secretHasher: this.secretHasher,
-        identifiers: this.identifiers,
-        policy: TEST_REGISTRATION_POLICY,
-      }),
+      journeyOpener: this.journeyOpener(TEST_REGISTRATION_POLICY),
       codes: this.codes,
       identifiers: this.identifiers,
       messages: this.messages,
@@ -76,6 +84,40 @@ export class IdentityTestContext {
       journeys: this.journeys,
       unitOfWork: this.unitOfWork,
       secretHasher: this.secretHasher,
+      clock: this.clock,
+    });
+  }
+
+  requestPasswordReset(): RequestPasswordResetUseCase {
+    return new RequestPasswordResetUseCase({
+      accounts: this.accounts,
+      journeys: this.journeys,
+      unitOfWork: this.unitOfWork,
+      journeyOpener: this.journeyOpener(TEST_PASSWORD_RESET_POLICY),
+      codes: this.codes,
+      identifiers: this.identifiers,
+      passwordHasher: this.passwordHasher,
+      messages: this.messages,
+      clock: this.clock,
+      policy: TEST_PASSWORD_RESET_POLICY,
+    });
+  }
+
+  verifyPasswordResetCode(): VerifyPasswordResetCodeUseCase {
+    return new VerifyPasswordResetCodeUseCase({
+      journeys: this.journeys,
+      secretHasher: this.secretHasher,
+      clock: this.clock,
+    });
+  }
+
+  confirmPasswordReset(): ConfirmPasswordResetUseCase {
+    return new ConfirmPasswordResetUseCase({
+      accounts: this.accounts,
+      journeys: this.journeys,
+      sessions: this.sessions,
+      unitOfWork: this.unitOfWork,
+      passwordHasher: this.passwordHasher,
       clock: this.clock,
     });
   }
@@ -95,5 +137,13 @@ export class IdentityTestContext {
 
   checkUsernameAvailability(): CheckUsernameAvailabilityUseCase {
     return new CheckUsernameAvailabilityUseCase(this.accounts);
+  }
+
+  private journeyOpener(policy: VerificationPolicy): VerificationJourneyOpener {
+    return new VerificationJourneyOpener({
+      secretHasher: this.secretHasher,
+      identifiers: this.identifiers,
+      policy,
+    });
   }
 }

@@ -7,13 +7,32 @@ import { Session } from '@identity/domain/session/session';
 import { EmailAddress } from '@identity/domain/value-objects/email-address';
 import { PasswordHash } from '@identity/domain/value-objects/password-hash';
 import { Username } from '@identity/domain/value-objects/username';
+import { VerificationCode } from '@identity/domain/value-objects/verification-code';
 import { VerificationJourney } from '@identity/domain/verification/verification-journey';
 import { VerificationPurpose } from '@identity/domain/verification/verification-purpose';
+import { TrivialSecretHasher } from './in-memory/trivial-secret-hasher';
 import { PrismaIdentityHarness } from './prisma-identity-harness';
 
 const MINUTE = 60 * 1000;
 const DAY = 24 * 60 * MINUTE;
 const REGISTERED_AT = new Date('2026-01-01T10:00:00.000Z');
+
+function openJourney(
+  accountId: string | null,
+  purpose: VerificationPurpose,
+  codeHash = 'digest',
+): VerificationJourney {
+  return VerificationJourney.open({
+    id: randomUUID(),
+    purpose,
+    accountId,
+    codeHash: PasswordHash.fromStoredValue(codeHash),
+    maxAttempts: 5,
+    codeExpiresAt: new Date(REGISTERED_AT.getTime() + 10 * MINUTE),
+    expiresAt: new Date(REGISTERED_AT.getTime() + 15 * MINUTE),
+    openedAt: REGISTERED_AT,
+  });
+}
 
 function buildAccount(username: string, email: string): Account {
   return Account.register({
@@ -159,6 +178,63 @@ describe('Dépôts Prisma du module identité', () => {
     await harness.journeys.add(journey);
 
     expect((await harness.journeys.findById(journey.id))?.accountId).toBeNull();
+  });
+
+  it('persiste la vérification d un code sans consommer le parcours', async () => {
+    const account = buildAccount('rakkoonette', 'william@rakkoons.fr');
+    await harness.accounts.add(account);
+
+    const journey = openJourney(
+      account.id,
+      VerificationPurpose.PasswordReset,
+      'hashed:429861',
+    );
+    await harness.journeys.add(journey);
+
+    await journey.verifyCode(
+      VerificationCode.create('429861'),
+      new TrivialSecretHasher(),
+      new Date(REGISTERED_AT.getTime() + MINUTE),
+    );
+    await harness.journeys.save(journey);
+
+    const reloaded = await harness.journeys.findById(journey.id);
+
+    expect(reloaded?.isVerified()).toBe(true);
+    expect(reloaded?.isConsumed()).toBe(false);
+    expect(reloaded?.verifiedAt).toEqual(journey.verifiedAt);
+  });
+
+  it('consomme les parcours de réinitialisation en cours du seul compte visé', async () => {
+    const owner = buildAccount('rakkoonette', 'william@rakkoons.fr');
+    const other = buildAccount('autrekoon', 'autre@rakkoons.fr');
+    await harness.accounts.add(owner);
+    await harness.accounts.add(other);
+
+    const reset = openJourney(owner.id, VerificationPurpose.PasswordReset);
+    const signUp = openJourney(owner.id, VerificationPurpose.SignUp);
+    const foreign = openJourney(other.id, VerificationPurpose.PasswordReset);
+
+    for (const journey of [reset, signUp, foreign]) {
+      await harness.journeys.add(journey);
+    }
+
+    const consumedAt = new Date(REGISTERED_AT.getTime() + MINUTE);
+    await harness.journeys.consumeActiveForAccount(
+      owner.id,
+      VerificationPurpose.PasswordReset,
+      consumedAt,
+    );
+
+    expect((await harness.journeys.findById(reset.id))?.isConsumed()).toBe(
+      true,
+    );
+    expect((await harness.journeys.findById(signUp.id))?.isConsumed()).toBe(
+      false,
+    );
+    expect((await harness.journeys.findById(foreign.id))?.isConsumed()).toBe(
+      false,
+    );
   });
 
   it('écrit puis relit une session à l identique', async () => {

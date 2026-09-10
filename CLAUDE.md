@@ -5,5 +5,6 @@
 @.claude/rules/application.md
 @.claude/rules/infrastructure.md
 @.claude/rules/presentation.md
+@.claude/rules/email.md
 @.claude/rules/prisma.md
 @.claude/rules/test.md

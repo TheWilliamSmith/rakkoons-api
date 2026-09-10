@@ -10,6 +10,7 @@ export interface VerificationJourneyRecord {
   attemptsLeft: number;
   codeExpiresAt: Date;
   expiresAt: Date;
+  verifiedAt: Date | null;
   consumedAt: Date | null;
   createdAt: Date;
 }
@@ -38,11 +39,18 @@ export const VERIFICATION_JOURNEY_SELECTION = {
   attemptsLeft: true,
   codeExpiresAt: true,
   expiresAt: true,
+  verifiedAt: true,
   consumedAt: true,
   createdAt: true,
 } as const;
 
 export class VerificationJourneyMapper {
+  static toRecordPurpose(
+    purpose: VerificationPurpose,
+  ): VerificationJourneyRecord['purpose'] {
+    return PURPOSE_TO_RECORD[purpose];
+  }
+
   static toDomain(record: VerificationJourneyRecord): VerificationJourney {
     return VerificationJourney.restore({
       id: record.id,
@@ -52,6 +60,7 @@ export class VerificationJourneyMapper {
       attemptsLeft: record.attemptsLeft,
       codeExpiresAt: record.codeExpiresAt,
       expiresAt: record.expiresAt,
+      verifiedAt: record.verifiedAt,
       consumedAt: record.consumedAt,
       createdAt: record.createdAt,
     });
@@ -66,6 +75,7 @@ export class VerificationJourneyMapper {
       attemptsLeft: journey.attemptsLeft,
       codeExpiresAt: journey.codeExpiresAt,
       expiresAt: journey.expiresAt,
+      verifiedAt: journey.verifiedAt,
       consumedAt: journey.consumedAt,
       createdAt: journey.createdAt,
     };

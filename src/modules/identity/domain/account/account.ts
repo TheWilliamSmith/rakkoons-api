@@ -104,6 +104,11 @@ export class Account {
     this.state.updatedAt = activatedAt;
   }
 
+  changePassword(passwordHash: PasswordHash, changedAt: Date): void {
+    this.state.passwordHash = passwordHash;
+    this.state.updatedAt = changedAt;
+  }
+
   async verifyCredentials(
     password: PlainPassword,
     hasher: PasswordHasher,

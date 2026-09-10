@@ -12,5 +12,8 @@ export const IdentityToken = {
   UnitOfWork: Symbol('UnitOfWork'),
   Clock: Symbol('Clock'),
   RegistrationPolicy: Symbol('RegistrationPolicy'),
+  PasswordResetPolicy: Symbol('PasswordResetPolicy'),
   SessionPolicy: Symbol('SessionPolicy'),
+  RegistrationJourneyOpener: Symbol('RegistrationJourneyOpener'),
+  PasswordResetJourneyOpener: Symbol('PasswordResetJourneyOpener'),
 } as const;

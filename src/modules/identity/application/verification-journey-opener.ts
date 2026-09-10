@@ -2,12 +2,12 @@ import { IdentifierGenerator } from '../domain/ports/identifier-generator';
 import { SecretHasher } from '../domain/ports/secret-hasher';
 import { VerificationJourney } from '../domain/verification/verification-journey';
 import { VerificationPurpose } from '../domain/verification/verification-purpose';
-import { RegistrationPolicy } from './identity-policy';
+import { VerificationPolicy } from './identity-policy';
 
 interface VerificationJourneyOpenerDependencies {
   secretHasher: SecretHasher;
   identifiers: IdentifierGenerator;
-  policy: RegistrationPolicy;
+  policy: VerificationPolicy;
 }
 
 export class VerificationJourneyOpener {

@@ -10,7 +10,7 @@ export class SignUpDto {
   @IsString()
   email!: string;
 
-  @ApiProperty({ example: 'MotDePasseQuiGagne1' })
+  @ApiProperty({ example: 'MotDePasseQuiGagne1!' })
   @IsString()
   password!: string;
 

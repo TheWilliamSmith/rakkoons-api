@@ -1,3 +1,4 @@
+import { MessageDeliveryFailedError } from '../../domain/errors/message-delivery-failed.error';
 import { EmailAddress } from '../../domain/value-objects/email-address';
 import { VerificationCode } from '../../domain/value-objects/verification-code';
 import { EmailMessageSender } from './email-message-sender';
@@ -59,12 +60,23 @@ describe('EmailMessageSender', () => {
     expect(transport.sent[0].text).toContain('429861');
   });
 
-  it('journalise et absorbe un échec du transport', async () => {
+  it('remet au transport un message de réinitialisation', async () => {
+    const transport = new RecordingTransport();
+    const { sender } = build(transport);
+
+    await sender.sendPasswordResetCode(RECIPIENT, CODE);
+
+    expect(transport.sent).toHaveLength(1);
+    expect(transport.sent[0].subject).toContain('réinitialisation');
+    expect(transport.sent[0].text).toContain('429861');
+  });
+
+  it('journalise puis traduit un échec du transport en erreur métier', async () => {
     const { sender, logger } = build(new FailingTransport());
 
-    await expect(
-      sender.sendRegistrationCode(RECIPIENT, CODE),
-    ).resolves.toBeUndefined();
+    await expect(sender.sendRegistrationCode(RECIPIENT, CODE)).rejects.toThrow(
+      MessageDeliveryFailedError,
+    );
     expect(logger.errors).toEqual(['email dispatch failed']);
   });
 });

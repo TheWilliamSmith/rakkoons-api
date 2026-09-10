@@ -1,6 +1,6 @@
 import { DomainError } from '../../../../shared/domain/domain-error';
 
-export class PasswordTooShortError extends DomainError {
+export class PasswordResetCodeRejectedError extends DomainError {
   constructor() {
     super();
   }

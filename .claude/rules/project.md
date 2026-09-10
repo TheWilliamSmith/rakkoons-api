@@ -91,7 +91,8 @@ Ces règles s'appliquent à toute fonctionnalité, pas seulement à l'authentifi
 - **Validation à la frontière.** Toute entrée HTTP est validée et nettoyée avant d'atteindre la couche application. Les propriétés non déclarées sont rejetées, pas ignorées.
 - **Aucun secret, jeton, mot de passe ou en-tête d'autorisation dans un journal**, à aucun niveau, y compris en développement.
 - **Mots de passe hachés avec argon2id**, jamais chiffrés, jamais comparés autrement que par la fonction de vérification dédiée.
-- **Exigences de mot de passe fondées sur la longueur**, douze caractères minimum. Aucune règle de composition.
+- **Exigences de mot de passe : longueur minimale de douze caractères et composition** : au moins une majuscule, une minuscule, un chiffre et un caractère spécial. La même politique s'applique à toute route qui pose un mot de passe, inscription comme réinitialisation.
+- **Aucune donnée sensible dans une URL**, ni en chemin, ni en paramètre de requête. Un code, un jeton ou une adresse voyagent dans le corps ou dans un cookie.
 - **Jetons opaques et aléatoires**, stockés hachés, à usage unique et à durée courte pour tout ce qui circule par e-mail.
 - **Limitation de débit** sur toute route d'authentification, de réinitialisation et de renvoi d'e-mail.
 - **Aucune entité de domaine ni modèle de persistance retourné tel quel dans une réponse HTTP.** Une réponse est toujours un DTO explicite.

@@ -4,10 +4,10 @@ import { Request } from 'express';
 import { type Env } from '../../../config/env.validation';
 import { EmailRateLimiter } from './email-rate-limiter';
 
-const THROTTLER_KEY = 'sign-in-account';
+const THROTTLER_KEY = 'password-reset-account';
 
 @Injectable()
-export class SignInAccountThrottlerGuard implements CanActivate {
+export class PasswordResetAccountThrottlerGuard implements CanActivate {
   constructor(
     private readonly limiter: EmailRateLimiter,
     private readonly config: ConfigService<Env, true>,
@@ -21,7 +21,7 @@ export class SignInAccountThrottlerGuard implements CanActivate {
     await this.limiter.consume(
       THROTTLER_KEY,
       request.body?.email,
-      this.config.get('RATE_LIMIT_SIGN_IN_PER_ACCOUNT', { infer: true }),
+      this.config.get('RATE_LIMIT_PASSWORD_RESET_PER_ACCOUNT', { infer: true }),
     );
 
     return true;

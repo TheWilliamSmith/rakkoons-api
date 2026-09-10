@@ -5,6 +5,9 @@ export const ThrottlerName = {
   SignUp: 'sign-up',
   SignUpVerify: 'sign-up-verify',
   SignIn: 'sign-in',
+  PasswordReset: 'password-reset',
+  PasswordResetVerify: 'password-reset-verify',
+  PasswordResetConfirm: 'password-reset-confirm',
 } as const;
 
 export type ThrottlerName = (typeof ThrottlerName)[keyof typeof ThrottlerName];

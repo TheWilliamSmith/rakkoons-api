@@ -27,7 +27,7 @@ export const DOMAIN_ERROR_HTTP_MAP: Record<string, HttpFailure> = {
     status: HttpStatus.UNPROCESSABLE_ENTITY,
     reason: FailureReason.InvalidCredentials,
   },
-  PasswordTooShortError: {
+  WeakPasswordError: {
     status: HttpStatus.UNPROCESSABLE_ENTITY,
     reason: FailureReason.InvalidCredentials,
   },
@@ -58,5 +58,17 @@ export const DOMAIN_ERROR_HTTP_MAP: Record<string, HttpFailure> = {
   EmailAlreadyRegisteredError: {
     status: HttpStatus.CONFLICT,
     reason: FailureReason.EmailTaken,
+  },
+  PasswordResetCodeRejectedError: {
+    status: HttpStatus.UNPROCESSABLE_ENTITY,
+    reason: FailureReason.InvalidCode,
+  },
+  PasswordResetAttemptsExhaustedError: {
+    status: HttpStatus.UNPROCESSABLE_ENTITY,
+    reason: FailureReason.InvalidCode,
+  },
+  MessageDeliveryFailedError: {
+    status: HttpStatus.SERVICE_UNAVAILABLE,
+    reason: FailureReason.Unavailable,
   },
 };

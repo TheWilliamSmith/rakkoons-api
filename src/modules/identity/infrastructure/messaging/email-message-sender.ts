@@ -2,11 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino';
 import { type Env } from '../../../../config/env.validation';
+import { MessageDeliveryFailedError } from '../../domain/errors/message-delivery-failed.error';
 import { MessageSender } from '../../domain/ports/message-sender';
 import { EmailAddress } from '../../domain/value-objects/email-address';
 import { VerificationCode } from '../../domain/value-objects/verification-code';
 import { IdentityToken } from '../../identity.tokens';
 import { type EmailContent, type EmailTransport } from './outbound-email';
+import { passwordResetCodeEmail } from './templates/password-reset-code.email';
 import { registrationCodeEmail } from './templates/registration-code.email';
 
 @Injectable()
@@ -33,6 +35,19 @@ export class EmailMessageSender implements MessageSender {
     );
   }
 
+  sendPasswordResetCode(
+    recipient: EmailAddress,
+    code: VerificationCode,
+  ): Promise<void> {
+    return this.dispatch(
+      recipient,
+      passwordResetCodeEmail(
+        code.reveal(),
+        this.config.get('PASSWORD_RESET_CODE_TTL_MINUTES', { infer: true }),
+      ),
+    );
+  }
+
   private async dispatch(
     recipient: EmailAddress,
     content: EmailContent,
@@ -51,6 +66,8 @@ export class EmailMessageSender implements MessageSender {
         },
         'email dispatch failed',
       );
+
+      throw new MessageDeliveryFailedError();
     }
   }
 }

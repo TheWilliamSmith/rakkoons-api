@@ -77,7 +77,7 @@ describe('OpenSessionUseCase', () => {
     );
     const wrongPassword = await failureOf(
       VALID_INPUT.email,
-      'MauvaisMotDePasse1',
+      'MauvaisMotDePasse1!',
     );
     const pendingAccount = await failureOf(VALID_INPUT.email, TEST_PASSWORD);
 

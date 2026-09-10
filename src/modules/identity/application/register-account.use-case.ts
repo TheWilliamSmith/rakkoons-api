@@ -81,9 +81,7 @@ export class RegisterAccountUseCase {
       await this.dependencies.journeys.add(journey);
     });
 
-    await this.dependencies.messages
-      .sendRegistrationCode(email, code)
-      .catch(() => undefined);
+    await this.dependencies.messages.sendRegistrationCode(email, code);
 
     return { journeyId: journey.id, journeyExpiresAt: journey.expiresAt };
   }

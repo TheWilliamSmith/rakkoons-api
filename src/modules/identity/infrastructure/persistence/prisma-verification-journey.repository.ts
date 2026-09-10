@@ -3,6 +3,7 @@ import { isUuid } from './uuid';
 import { PrismaTransactionContext } from '../../../../shared/infrastructure/prisma/prisma-transaction-context';
 import { VerificationJourneyRepository } from '../../domain/ports/verification-journey-repository';
 import { VerificationJourney } from '../../domain/verification/verification-journey';
+import { VerificationPurpose } from '../../domain/verification/verification-purpose';
 import {
   VERIFICATION_JOURNEY_SELECTION,
   VerificationJourneyMapper,
@@ -37,5 +38,20 @@ export class PrismaVerificationJourneyRepository implements VerificationJourneyR
     await this.context
       .client()
       .verificationJourney.update({ where: { id: record.id }, data: record });
+  }
+
+  async consumeActiveForAccount(
+    accountId: string,
+    purpose: VerificationPurpose,
+    consumedAt: Date,
+  ): Promise<void> {
+    await this.context.client().verificationJourney.updateMany({
+      where: {
+        accountId,
+        purpose: VerificationJourneyMapper.toRecordPurpose(purpose),
+        consumedAt: null,
+      },
+      data: { consumedAt },
+    });
   }
 }

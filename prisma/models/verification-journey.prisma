@@ -13,6 +13,7 @@ model VerificationJourney {
     attemptsLeft  Int                 @map("attempts_left")
     codeExpiresAt DateTime            @map("code_expires_at")
     expiresAt     DateTime            @map("expires_at")
+    verifiedAt    DateTime?           @map("verified_at")
     consumedAt    DateTime?           @map("consumed_at")
     createdAt     DateTime            @map("created_at")
     updatedAt     DateTime            @updatedAt @map("updated_at")
@@ -21,5 +22,6 @@ model VerificationJourney {
 
     @@index([accountId])
     @@index([expiresAt])
+    @@index([accountId, purpose, consumedAt])
     @@map("verification_journeys")
 }

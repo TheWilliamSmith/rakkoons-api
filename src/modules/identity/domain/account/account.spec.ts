@@ -10,7 +10,7 @@ import { Account } from './account';
 import { AccountStatus } from './account-status';
 
 const REGISTERED_AT = new Date('2026-01-01T10:00:00.000Z');
-const PASSWORD = 'MotDePasseQuiGagne1';
+const PASSWORD = 'MotDePasseQuiGagne1!';
 
 function register(hasAcceptedTerms = true): Account {
   return Account.register({
@@ -73,7 +73,7 @@ describe('Account', () => {
 
     await expect(
       account.verifyCredentials(
-        PlainPassword.create('MauvaisMotDePasse1'),
+        PlainPassword.create('MauvaisMotDePasse1!'),
         new TrivialPasswordHasher(),
       ),
     ).rejects.toThrow(CredentialsRejectedError);

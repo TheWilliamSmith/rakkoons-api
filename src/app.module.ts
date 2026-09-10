@@ -101,6 +101,27 @@ const PRETTY_LOG_MESSAGE_FORMAT =
               ttl,
               limit: config.get('RATE_LIMIT_SIGN_IN_PER_IP', { infer: true }),
             },
+            {
+              name: ThrottlerName.PasswordReset,
+              ttl,
+              limit: config.get('RATE_LIMIT_PASSWORD_RESET_PER_IP', {
+                infer: true,
+              }),
+            },
+            {
+              name: ThrottlerName.PasswordResetVerify,
+              ttl,
+              limit: config.get('RATE_LIMIT_PASSWORD_RESET_VERIFY', {
+                infer: true,
+              }),
+            },
+            {
+              name: ThrottlerName.PasswordResetConfirm,
+              ttl,
+              limit: config.get('RATE_LIMIT_PASSWORD_RESET_CONFIRM', {
+                infer: true,
+              }),
+            },
           ],
         };
       },
