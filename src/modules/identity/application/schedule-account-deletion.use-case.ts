@@ -9,6 +9,7 @@ import { SessionRepository } from '../domain/ports/session-repository';
 import { UnitOfWork } from '../domain/ports/unit-of-work';
 import { PlainPassword } from '../domain/value-objects/plain-password';
 import { AccountDeletionPolicy } from './identity-policy';
+import { dispatchNotice } from './notice-dispatch';
 
 export interface ScheduleAccountDeletionInput {
   accountId: string;
@@ -50,9 +51,11 @@ export class ScheduleAccountDeletionUseCase {
       );
     });
 
-    await this.dependencies.messages.sendAccountDeletionNotice(
-      account.email,
-      scheduledAt,
+    dispatchNotice(
+      this.dependencies.messages.sendAccountDeletionNotice(
+        account.email,
+        scheduledAt,
+      ),
     );
   }
 

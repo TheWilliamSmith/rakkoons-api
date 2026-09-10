@@ -1,6 +1,8 @@
 import { SessionNotEstablishedError } from '../domain/errors/session-not-established.error';
 import { AccountRepository } from '../domain/ports/account-repository';
 import { Clock } from '../domain/ports/clock';
+import { MessageSender } from '../domain/ports/message-sender';
+import { dispatchNotice } from './notice-dispatch';
 
 export interface CancelAccountDeletionInput {
   accountId: string;
@@ -8,6 +10,7 @@ export interface CancelAccountDeletionInput {
 
 interface CancelAccountDeletionDependencies {
   accounts: AccountRepository;
+  messages: MessageSender;
   clock: Clock;
 }
 
@@ -25,5 +28,9 @@ export class CancelAccountDeletionUseCase {
 
     account.cancelDeletion(this.dependencies.clock.now());
     await this.dependencies.accounts.save(account);
+
+    dispatchNotice(
+      this.dependencies.messages.sendAccountDeletionCancelled(account.email),
+    );
   }
 }

@@ -2,6 +2,7 @@ import {
   BRAND_NAME,
   CodeEmailCopy,
   EmailCopy,
+  NoticeEmailCopy,
   spelledOutCode,
   validityLine,
 } from '../content/email-copy';
@@ -15,8 +16,8 @@ export interface CodeEmailParameters {
 }
 
 export interface NoticeEmailParameters {
-  copy: CodeEmailCopy;
-  detail: string;
+  copy: NoticeEmailCopy;
+  detail?: string;
 }
 
 interface EmailBody {
@@ -25,7 +26,8 @@ interface EmailBody {
   heading: string;
   lede: string;
   highlight: string | null;
-  detail: string;
+  detail: string | null;
+  footer: string;
 }
 
 const ESCAPED_CHARACTERS: Record<string, string> = {
@@ -48,6 +50,7 @@ export function renderCodeEmail(parameters: CodeEmailParameters): EmailContent {
     ...parameters.copy,
     highlight: parameters.code,
     detail: validityLine(parameters.validityMinutes),
+    footer: EmailCopy.codeFooter,
   });
 }
 
@@ -57,7 +60,7 @@ export function renderNoticeEmail(
   return render({
     ...parameters.copy,
     highlight: null,
-    detail: parameters.detail,
+    detail: parameters.detail ?? null,
   });
 }
 
@@ -91,9 +94,11 @@ function renderHtml(body: EmailBody): string {
         `<h1 style="${EmailStyle.Heading}">${escape(body.heading)}</h1>`,
         `<p style="${EmailStyle.Lede}">${escape(body.lede)}</p>`,
         body.highlight === null ? '' : renderCode(body.highlight),
-        `<p style="${detailStyle(body)}">${escape(body.detail)}</p>`,
+        body.detail === null
+          ? ''
+          : `<p style="${detailStyle(body)}">${escape(body.detail)}</p>`,
         `<hr style="${EmailStyle.Rule}">`,
-        `<p style="${EmailStyle.Footer}">${escape(EmailCopy.footer)}</p>`,
+        `<p style="${EmailStyle.Footer}">${escape(body.footer)}</p>`,
         '</td></tr>',
       ]),
       '</td></tr>',
@@ -150,9 +155,8 @@ function renderText(body: EmailBody): string {
     '',
     body.lede,
     ...(body.highlight === null ? [] : ['', body.highlight]),
+    ...(body.detail === null ? [] : ['', body.detail]),
     '',
-    body.detail,
-    '',
-    EmailCopy.footer,
+    body.footer,
   ].join('\n');
 }

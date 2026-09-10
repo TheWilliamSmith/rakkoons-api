@@ -1,5 +1,6 @@
 import { MessageSender } from '@identity/domain/ports/message-sender';
 import { EmailAddress } from '@identity/domain/value-objects/email-address';
+import { Username } from '@identity/domain/value-objects/username';
 import { VerificationCode } from '@identity/domain/value-objects/verification-code';
 
 export interface RecordedCode {
@@ -14,6 +15,14 @@ export class RecordingMessageSender implements MessageSender {
   readonly emailChangeCodes: RecordedCode[] = [];
   readonly emailChangeNotices: { recipient: string; newAddress: string }[] = [];
   readonly deletionNotices: { recipient: string; scheduledAt: Date }[] = [];
+  readonly registrationConfirmations: {
+    recipient: string;
+    username: string;
+  }[] = [];
+  readonly passwordChanges: string[] = [];
+  readonly passwordResetCompletions: string[] = [];
+  readonly usernameChanges: { recipient: string; username: string }[] = [];
+  readonly deletionCancellations: string[] = [];
 
   sendRegistrationCode(
     recipient: EmailAddress,
@@ -28,6 +37,43 @@ export class RecordingMessageSender implements MessageSender {
     code: VerificationCode,
   ): Promise<void> {
     this.signInCodes.push(record(recipient, code));
+    return Promise.resolve();
+  }
+
+  sendRegistrationConfirmed(
+    recipient: EmailAddress,
+    username: Username,
+  ): Promise<void> {
+    this.registrationConfirmations.push({
+      recipient: recipient.toString(),
+      username: username.toString(),
+    });
+    return Promise.resolve();
+  }
+
+  sendPasswordChanged(recipient: EmailAddress): Promise<void> {
+    this.passwordChanges.push(recipient.toString());
+    return Promise.resolve();
+  }
+
+  sendPasswordResetCompleted(recipient: EmailAddress): Promise<void> {
+    this.passwordResetCompletions.push(recipient.toString());
+    return Promise.resolve();
+  }
+
+  sendUsernameChanged(
+    recipient: EmailAddress,
+    username: Username,
+  ): Promise<void> {
+    this.usernameChanges.push({
+      recipient: recipient.toString(),
+      username: username.toString(),
+    });
+    return Promise.resolve();
+  }
+
+  sendAccountDeletionCancelled(recipient: EmailAddress): Promise<void> {
+    this.deletionCancellations.push(recipient.toString());
     return Promise.resolve();
   }
 

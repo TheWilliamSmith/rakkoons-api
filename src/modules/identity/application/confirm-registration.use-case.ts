@@ -2,12 +2,14 @@ import { DomainError } from '../../../shared/domain/domain-error';
 import { VerificationJourneyNotFoundError } from '../domain/errors/verification-journey-not-found.error';
 import { AccountRepository } from '../domain/ports/account-repository';
 import { Clock } from '../domain/ports/clock';
+import { MessageSender } from '../domain/ports/message-sender';
 import { SecretHasher } from '../domain/ports/secret-hasher';
 import { UnitOfWork } from '../domain/ports/unit-of-work';
 import { VerificationJourneyRepository } from '../domain/ports/verification-journey-repository';
 import { VerificationCode } from '../domain/value-objects/verification-code';
 import { VerificationJourney } from '../domain/verification/verification-journey';
 import { VerificationPurpose } from '../domain/verification/verification-purpose';
+import { dispatchNotice } from './notice-dispatch';
 
 export interface ConfirmRegistrationInput {
   journeyId: string | null;
@@ -19,6 +21,7 @@ interface ConfirmRegistrationDependencies {
   journeys: VerificationJourneyRepository;
   unitOfWork: UnitOfWork;
   secretHasher: SecretHasher;
+  messages: MessageSender;
   clock: Clock;
 }
 
@@ -51,6 +54,27 @@ export class ConfirmRegistrationUseCase {
     if (rejection !== null) {
       throw rejection;
     }
+
+    await this.announce(journey.accountId);
+  }
+
+  private async announce(accountId: string | null): Promise<void> {
+    if (accountId === null) {
+      return;
+    }
+
+    const account = await this.dependencies.accounts.findById(accountId);
+
+    if (account === null) {
+      return;
+    }
+
+    dispatchNotice(
+      this.dependencies.messages.sendRegistrationConfirmed(
+        account.email,
+        account.username,
+      ),
+    );
   }
 
   private async submit(

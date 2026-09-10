@@ -9,6 +9,7 @@ import { IdentityToken } from '@identity/identity.tokens';
 import { MessageDeliveryFailedError } from '@identity/domain/errors/message-delivery-failed.error';
 import { MessageSender } from '@identity/domain/ports/message-sender';
 import { EmailAddress } from '@identity/domain/value-objects/email-address';
+import { Username } from '@identity/domain/value-objects/username';
 import { VerificationCode } from '@identity/domain/value-objects/verification-code';
 
 export class CapturingMessageSender implements MessageSender {
@@ -18,6 +19,11 @@ export class CapturingMessageSender implements MessageSender {
   readonly emailChangeCodes = new Map<string, string>();
   readonly emailChangeNotices = new Map<string, string>();
   readonly deletionNotices = new Map<string, Date>();
+  readonly registrationConfirmations = new Map<string, string>();
+  readonly passwordChanges = new Set<string>();
+  readonly passwordResetCompletions = new Set<string>();
+  readonly usernameChanges = new Map<string, string>();
+  readonly deletionCancellations = new Set<string>();
   deliveryFails = false;
 
   sendRegistrationCode(
@@ -32,6 +38,40 @@ export class CapturingMessageSender implements MessageSender {
     code: VerificationCode,
   ): Promise<void> {
     return this.capture(this.signInCodes, recipient, code);
+  }
+
+  sendRegistrationConfirmed(
+    recipient: EmailAddress,
+    username: Username,
+  ): Promise<void> {
+    this.registrationConfirmations.set(
+      recipient.toString(),
+      username.toString(),
+    );
+    return Promise.resolve();
+  }
+
+  sendPasswordChanged(recipient: EmailAddress): Promise<void> {
+    this.passwordChanges.add(recipient.toString());
+    return Promise.resolve();
+  }
+
+  sendPasswordResetCompleted(recipient: EmailAddress): Promise<void> {
+    this.passwordResetCompletions.add(recipient.toString());
+    return Promise.resolve();
+  }
+
+  sendUsernameChanged(
+    recipient: EmailAddress,
+    username: Username,
+  ): Promise<void> {
+    this.usernameChanges.set(recipient.toString(), username.toString());
+    return Promise.resolve();
+  }
+
+  sendAccountDeletionCancelled(recipient: EmailAddress): Promise<void> {
+    this.deletionCancellations.add(recipient.toString());
+    return Promise.resolve();
   }
 
   sendEmailChangeCode(
@@ -130,6 +170,11 @@ export class AuthE2eHarness {
     this.messages.emailChangeCodes.clear();
     this.messages.emailChangeNotices.clear();
     this.messages.deletionNotices.clear();
+    this.messages.registrationConfirmations.clear();
+    this.messages.passwordChanges.clear();
+    this.messages.passwordResetCompletions.clear();
+    this.messages.usernameChanges.clear();
+    this.messages.deletionCancellations.clear();
     this.messages.deliveryFails = false;
   }
 

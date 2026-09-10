@@ -9,6 +9,7 @@ import { VerificationJourneyRepository } from '../domain/ports/verification-jour
 import { VerificationCode } from '../domain/value-objects/verification-code';
 import { VerificationJourney } from '../domain/verification/verification-journey';
 import { VerificationPurpose } from '../domain/verification/verification-purpose';
+import { dispatchNotice } from './notice-dispatch';
 
 export interface ConfirmEmailChangeInput {
   accountId: string;
@@ -52,9 +53,8 @@ export class ConfirmEmailChangeUseCase {
       await this.dependencies.accounts.save(account);
     });
 
-    await this.dependencies.messages.sendEmailChangeNotice(
-      previous,
-      account.email,
+    dispatchNotice(
+      this.dependencies.messages.sendEmailChangeNotice(previous, account.email),
     );
   }
 

@@ -42,8 +42,8 @@ describe('EmailCopy', () => {
     }
   });
 
-  it('n emploie qu un seul pied, partagé par tous les messages', () => {
-    expect(EmailCopy.footer).toBe(
+  it('emploie un pied unique pour tous les messages de code', () => {
+    expect(EmailCopy.codeFooter).toBe(
       "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
     );
   });

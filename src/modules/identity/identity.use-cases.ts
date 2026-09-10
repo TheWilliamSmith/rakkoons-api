@@ -219,6 +219,7 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
       IdentityToken.VerificationJourneyRepository,
       IdentityToken.UnitOfWork,
       IdentityToken.SecretHasher,
+      IdentityToken.MessageSender,
       IdentityToken.Clock,
     ],
     useFactory: (
@@ -226,6 +227,7 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
       journeys: VerificationJourneyRepository,
       unitOfWork: UnitOfWork,
       secretHasher: SecretHasher,
+      messages: MessageSender,
       clock: Clock,
     ): ConfirmRegistrationUseCase =>
       new ConfirmRegistrationUseCase({
@@ -233,6 +235,7 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
         journeys,
         unitOfWork,
         secretHasher,
+        messages,
         clock,
       }),
   },
@@ -297,6 +300,7 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
       IdentityToken.SessionRepository,
       IdentityToken.UnitOfWork,
       IdentityToken.PasswordHasher,
+      IdentityToken.MessageSender,
       IdentityToken.Clock,
     ],
     useFactory: (
@@ -305,6 +309,7 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
       sessions: SessionRepository,
       unitOfWork: UnitOfWork,
       passwordHasher: PasswordHasher,
+      messages: MessageSender,
       clock: Clock,
     ): ConfirmPasswordResetUseCase =>
       new ConfirmPasswordResetUseCase({
@@ -313,6 +318,7 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
         sessions,
         unitOfWork,
         passwordHasher,
+        messages,
         clock,
       }),
   },
@@ -467,12 +473,17 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
   },
   {
     provide: CancelAccountDeletionUseCase,
-    inject: [IdentityToken.AccountRepository, IdentityToken.Clock],
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.MessageSender,
+      IdentityToken.Clock,
+    ],
     useFactory: (
       accounts: AccountRepository,
+      messages: MessageSender,
       clock: Clock,
     ): CancelAccountDeletionUseCase =>
-      new CancelAccountDeletionUseCase({ accounts, clock }),
+      new CancelAccountDeletionUseCase({ accounts, messages, clock }),
   },
   {
     provide: PurgeDueAccountsUseCase,
@@ -496,11 +507,17 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
   },
   {
     provide: ChangeUsernameUseCase,
-    inject: [IdentityToken.AccountRepository, IdentityToken.Clock],
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.MessageSender,
+      IdentityToken.Clock,
+    ],
     useFactory: (
       accounts: AccountRepository,
+      messages: MessageSender,
       clock: Clock,
-    ): ChangeUsernameUseCase => new ChangeUsernameUseCase({ accounts, clock }),
+    ): ChangeUsernameUseCase =>
+      new ChangeUsernameUseCase({ accounts, messages, clock }),
   },
   {
     provide: ChangePasswordUseCase,
@@ -509,6 +526,7 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
       IdentityToken.SessionRepository,
       IdentityToken.UnitOfWork,
       IdentityToken.PasswordHasher,
+      IdentityToken.MessageSender,
       IdentityToken.Clock,
     ],
     useFactory: (
@@ -516,6 +534,7 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
       sessions: SessionRepository,
       unitOfWork: UnitOfWork,
       passwordHasher: PasswordHasher,
+      messages: MessageSender,
       clock: Clock,
     ): ChangePasswordUseCase =>
       new ChangePasswordUseCase({
@@ -523,6 +542,7 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
         sessions,
         unitOfWork,
         passwordHasher,
+        messages,
         clock,
       }),
   },

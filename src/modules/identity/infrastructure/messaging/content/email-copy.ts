@@ -7,8 +7,15 @@ export interface CodeEmailCopy {
   lede: string;
 }
 
+export interface NoticeEmailCopy extends CodeEmailCopy {
+  footer: string;
+}
+
+const compromisedAccountAdvice =
+  "Si vous n'êtes pas à l'origine de ce changement, réinitialisez votre mot de passe sans attendre : votre compte est peut-être compromis.";
+
 export const EmailCopy = {
-  footer:
+  codeFooter:
     "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
   registrationCode: {
     subject: `Votre code de vérification ${BRAND_NAME}`,
@@ -33,12 +40,50 @@ export const EmailCopy = {
     preheader: "L'adresse de connexion de votre compte vient d'être modifiée.",
     heading: 'Votre adresse a été modifiée',
     lede: "L'adresse de connexion de votre compte vient d'être remplacée.",
+    footer: compromisedAccountAdvice,
   },
   accountDeletionNotice: {
     subject: `Suppression de votre compte ${BRAND_NAME}`,
     preheader: 'Votre compte sera supprimé, vous pouvez encore revenir.',
     heading: 'Votre compte va être supprimé',
     lede: 'Vous avez demandé la suppression de votre compte et de vos données.',
+    footer: compromisedAccountAdvice,
+  },
+  registrationConfirmed: {
+    subject: `Votre compte ${BRAND_NAME} est prêt`,
+    preheader: 'Votre adresse est confirmée, votre espace vous attend.',
+    heading: 'Votre compte est prêt',
+    lede: 'Votre adresse est confirmée et votre espace est ouvert.',
+    footer:
+      "Vous recevez cet e-mail parce qu'un compte vient d'être ouvert avec cette adresse.",
+  },
+  passwordChanged: {
+    subject: `Votre mot de passe ${BRAND_NAME} a changé`,
+    preheader: "Le mot de passe de votre compte vient d'être modifié.",
+    heading: 'Votre mot de passe a été modifié',
+    lede: "Le mot de passe de votre compte vient d'être remplacé.",
+    footer: compromisedAccountAdvice,
+  },
+  passwordResetCompleted: {
+    subject: `Votre mot de passe ${BRAND_NAME} a été réinitialisé`,
+    preheader: 'Un nouveau mot de passe a été défini pour votre compte.',
+    heading: 'Votre mot de passe a été réinitialisé',
+    lede: "Un nouveau mot de passe vient d'être défini pour votre compte.",
+    footer: compromisedAccountAdvice,
+  },
+  usernameChanged: {
+    subject: `Votre nom d'utilisateur ${BRAND_NAME} a changé`,
+    preheader: "Le nom d'utilisateur de votre compte vient d'être modifié.",
+    heading: "Votre nom d'utilisateur a été modifié",
+    lede: "Le nom d'utilisateur de votre compte vient d'être remplacé.",
+    footer: compromisedAccountAdvice,
+  },
+  accountDeletionCancelled: {
+    subject: `Suppression de votre compte ${BRAND_NAME} annulée`,
+    preheader: 'Votre compte et vos données sont conservés.',
+    heading: 'Votre compte est conservé',
+    lede: 'La suppression programmée de votre compte a été annulée.',
+    footer: compromisedAccountAdvice,
   },
   passwordResetCode: {
     subject: `Votre code de réinitialisation ${BRAND_NAME}`,
@@ -81,6 +126,18 @@ export function validityLine(minutes: number): string {
   const unit = minutes === SINGLE_MINUTE ? 'minute' : 'minutes';
 
   return `Ce code expire dans ${amount} ${unit}.`;
+}
+
+export function revokedSessionsLine(): string {
+  return 'Toutes vos autres sessions ont été fermées.';
+}
+
+export function newUsernameLine(username: string): string {
+  return `Nouveau nom d'utilisateur : ${username}`;
+}
+
+export function welcomeLine(username: string): string {
+  return `Vous êtes connu ici sous le nom ${username}.`;
 }
 
 export function newAddressLine(address: string): string {

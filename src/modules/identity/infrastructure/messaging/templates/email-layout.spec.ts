@@ -130,7 +130,7 @@ describe('renderCodeEmail', () => {
       EmailCopy.signInCode.lede,
       CODE,
       'Ce code expire dans dix minutes.',
-      EmailCopy.footer,
+      EmailCopy.codeFooter,
     ]);
   });
 

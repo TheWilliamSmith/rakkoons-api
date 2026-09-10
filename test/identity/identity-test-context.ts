@@ -122,6 +122,7 @@ export class IdentityTestContext {
       journeys: this.journeys,
       unitOfWork: this.unitOfWork,
       secretHasher: this.secretHasher,
+      messages: this.messages,
       clock: this.clock,
     });
   }
@@ -156,6 +157,7 @@ export class IdentityTestContext {
       sessions: this.sessions,
       unitOfWork: this.unitOfWork,
       passwordHasher: this.passwordHasher,
+      messages: this.messages,
       clock: this.clock,
     });
   }
@@ -218,6 +220,7 @@ export class IdentityTestContext {
   changeUsername(): ChangeUsernameUseCase {
     return new ChangeUsernameUseCase({
       accounts: this.accounts,
+      messages: this.messages,
       clock: this.clock,
     });
   }
@@ -228,6 +231,7 @@ export class IdentityTestContext {
       sessions: this.sessions,
       unitOfWork: this.unitOfWork,
       passwordHasher: this.passwordHasher,
+      messages: this.messages,
       clock: this.clock,
     });
   }
@@ -296,6 +300,7 @@ export class IdentityTestContext {
   cancelAccountDeletion(): CancelAccountDeletionUseCase {
     return new CancelAccountDeletionUseCase({
       accounts: this.accounts,
+      messages: this.messages,
       clock: this.clock,
     });
   }
