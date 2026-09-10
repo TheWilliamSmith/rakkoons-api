@@ -1,3 +1,4 @@
+import { EmailCopy } from '../content/email-copy';
 import { registrationCodeEmail } from './registration-code.email';
 
 const CODE = '429861';
@@ -12,11 +13,17 @@ describe('registrationCodeEmail', () => {
   });
 
   it('annonce la durée de validité venue de la configuration', () => {
-    expect(email.text).toContain(`${VALIDITY_MINUTES} minutes`);
+    expect(email.text).toContain('dix minutes');
   });
 
-  it('nomme la marque dans le sujet', () => {
-    expect(email.subject).toContain('Rakkoons');
+  it('reprend l objet du module de contenu', () => {
+    expect(email.subject).toBe(EmailCopy.registrationCode.subject);
+  });
+
+  it('porte un objet court, sans emoji, sans point final et sans le code', () => {
+    expect(email.subject).not.toMatch(/[.!?]$/);
+    expect(email.subject).not.toContain(CODE);
+    expect(email.subject.length).toBeLessThanOrEqual(60);
   });
 
   it('dit quoi faire quand on n est pas à l origine de la demande', () => {

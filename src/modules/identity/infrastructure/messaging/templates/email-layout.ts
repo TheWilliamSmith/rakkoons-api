@@ -1,18 +1,17 @@
-import { EmailContent } from '../outbound-email';
 import {
   BRAND_NAME,
-  EmailMetrics,
-  EmailStyle,
-  WEB_FONT_HREF,
-} from './email-theme';
+  CodeEmailCopy,
+  EmailCopy,
+  spelledOutCode,
+  validityLine,
+} from '../content/email-copy';
+import { EmailContent } from '../outbound-email';
+import { EmailMetrics, EmailStyle, NARROW_CARD_RULE } from './email-theme';
 
 export interface CodeEmailParameters {
-  subject: string;
-  heading: string;
-  lede: string;
+  copy: CodeEmailCopy;
   code: string;
-  validity: string;
-  footer: string;
+  validityMinutes: number;
 }
 
 const ESCAPED_CHARACTERS: Record<string, string> = {
@@ -32,7 +31,7 @@ function escape(value: string): string {
 
 export function renderCodeEmail(parameters: CodeEmailParameters): EmailContent {
   return {
-    subject: parameters.subject,
+    subject: parameters.copy.subject,
     html: renderHtml(parameters),
     text: renderText(parameters),
   };
@@ -40,22 +39,68 @@ export function renderCodeEmail(parameters: CodeEmailParameters): EmailContent {
 
 function renderHtml(parameters: CodeEmailParameters): string {
   return [
-    `<link rel="stylesheet" href="${WEB_FONT_HREF}">`,
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="${EmailStyle.Page}">`,
-    '<tr><td align="center">',
-    `<table role="presentation" width="${EmailMetrics.CardWidthAttribute}" cellpadding="0" cellspacing="0" border="0" style="${EmailStyle.Card}">`,
-    `<tr><td style="${EmailStyle.CardBody}">`,
-    `<p style="${EmailStyle.Logo}">${BRAND_NAME}<span style="${EmailStyle.LogoDot}">.</span></p>`,
-    `<h1 style="${EmailStyle.Heading}">${escape(parameters.heading)}</h1>`,
-    `<p style="${EmailStyle.Lede}">${escape(parameters.lede)}</p>`,
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="${EmailStyle.CodeBlock}">`,
-    `<p style="${EmailStyle.Code}">${escape(parameters.code)}</p>`,
-    '</td></tr></table>',
-    `<p style="${EmailStyle.Validity}">${escape(parameters.validity)}</p>`,
-    `<hr style="${EmailStyle.Rule}">`,
-    `<p style="${EmailStyle.Footer}">${escape(parameters.footer)}</p>`,
-    '</td></tr></table>',
-    '</td></tr></table>',
+    '<!DOCTYPE html>',
+    '<html lang="fr">',
+    '<head>',
+    '<meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width,initial-scale=1">',
+    '<meta name="color-scheme" content="light">',
+    '<meta name="supported-color-schemes" content="light">',
+    `<title>${escape(parameters.copy.subject)}</title>`,
+    `<style>${NARROW_CARD_RULE}</style>`,
+    '</head>',
+    `<body style="${EmailStyle.Body}">`,
+    `<div style="${EmailStyle.Preheader}">${escape(parameters.copy.preheader)}</div>`,
+    table(EmailStyle.Page, '100%', [
+      `<tr><td align="center" style="${EmailStyle.PageCell}">`,
+      table(EmailStyle.Card, EmailMetrics.CardWidthAttribute, [
+        `<tr><td class="rk-card" style="${EmailStyle.CardBody}">`,
+        renderLogo(),
+        `<h1 style="${EmailStyle.Heading}">${escape(parameters.copy.heading)}</h1>`,
+        `<p style="${EmailStyle.Lede}">${escape(parameters.copy.lede)}</p>`,
+        renderCode(parameters.code),
+        `<p style="${EmailStyle.Validity}">${escape(validityLine(parameters.validityMinutes))}</p>`,
+        `<hr style="${EmailStyle.Rule}">`,
+        `<p style="${EmailStyle.Footer}">${escape(EmailCopy.footer)}</p>`,
+        '</td></tr>',
+      ]),
+      '</td></tr>',
+    ]),
+    '</body>',
+    '</html>',
+  ].join('');
+}
+
+function renderLogo(): string {
+  return [
+    `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="${EmailStyle.LogoRow}">`,
+    '<tr>',
+    `<td width="10" height="10" style="${EmailStyle.LogoDot}">&nbsp;</td>`,
+    `<td style="${EmailStyle.LogoWord}">${BRAND_NAME}</td>`,
+    '</tr>',
+    '</table>',
+  ].join('');
+}
+
+function renderCode(code: string): string {
+  return table('', '100%', [
+    `<tr><td style="${EmailStyle.CodeCell}">`,
+    table('', '100%', [
+      `<tr><td style="${EmailStyle.CodeBlock}">`,
+      `<span role="img" aria-label="${escape(spelledOutCode(code))}" style="${EmailStyle.Code}">${escape(code)}</span>`,
+      '</td></tr>',
+    ]),
+    '</td></tr>',
+  ]);
+}
+
+function table(style: string, width: string, rows: string[]): string {
+  const styled = style === '' ? '' : ` style="${style}"`;
+
+  return [
+    `<table role="presentation" width="${width}" cellpadding="0" cellspacing="0" border="0"${styled}>`,
+    ...rows,
+    '</table>',
   ].join('');
 }
 
@@ -63,14 +108,14 @@ function renderText(parameters: CodeEmailParameters): string {
   return [
     BRAND_NAME,
     '',
-    parameters.heading,
+    parameters.copy.heading,
     '',
-    parameters.lede,
+    parameters.copy.lede,
     '',
     parameters.code,
     '',
-    parameters.validity,
+    validityLine(parameters.validityMinutes),
     '',
-    parameters.footer,
+    EmailCopy.footer,
   ].join('\n');
 }

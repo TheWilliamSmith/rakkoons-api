@@ -1,18 +1,14 @@
+import { EmailCopy } from '../content/email-copy';
 import { EmailContent } from '../outbound-email';
 import { renderCodeEmail } from './email-layout';
-import { BRAND_NAME } from './email-theme';
 
 export function registrationCodeEmail(
   code: string,
   validityMinutes: number,
 ): EmailContent {
   return renderCodeEmail({
-    subject: `Votre code de vérification ${BRAND_NAME}`,
-    heading: 'Confirmez votre inscription',
-    lede: `Voici le code à saisir pour terminer la création de votre compte ${BRAND_NAME}.`,
+    copy: EmailCopy.registrationCode,
     code,
-    validity: `Il expire dans ${validityMinutes} minutes et ne peut servir qu'une seule fois.`,
-    footer:
-      "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
+    validityMinutes,
   });
 }
