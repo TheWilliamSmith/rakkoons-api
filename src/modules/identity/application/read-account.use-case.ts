@@ -9,6 +9,8 @@ export interface ReadAccountOutput {
   username: string;
   email: string;
   createdAt: Date;
+  pendingEmail: string | null;
+  deletionScheduledAt: Date | null;
 }
 
 export class ReadAccountUseCase {
@@ -25,6 +27,9 @@ export class ReadAccountUseCase {
       username: account.username.toString(),
       email: account.email.toString(),
       createdAt: account.createdAt,
+      pendingEmail:
+        account.pendingEmail === null ? null : account.pendingEmail.toString(),
+      deletionScheduledAt: account.deletionScheduledAt,
     };
   }
 }

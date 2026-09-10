@@ -41,6 +41,7 @@ export const EmailStyle = {
   CodeCell: 'padding:32px 0;',
   CodeBlock: `padding:16px;background-color:${EmailPalette.CodeBlock};border-radius:${EmailMetrics.CodeRadius};text-align:center;`,
   Code: `${family}font-size:32px;font-weight:600;line-height:1;letter-spacing:0.3em;text-indent:0.3em;color:${EmailPalette.Text};`,
+  DetachedDetail: `margin:24px 0 0;${family}font-size:14px;font-weight:400;line-height:1.6;text-align:center;color:${EmailPalette.TextSoft};`,
   Validity: `margin:0;${family}font-size:14px;font-weight:400;line-height:1.6;text-align:center;color:${EmailPalette.TextSoft};`,
   Rule: `margin:24px 0;border:0;border-top:1px solid ${EmailPalette.Hairline};`,
   Footer: `margin:0;${family}font-size:14px;font-weight:400;line-height:1.6;color:${EmailPalette.TextSoft};`,

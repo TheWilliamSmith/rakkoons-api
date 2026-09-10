@@ -4,6 +4,7 @@ export const FailureReason = {
   Unauthenticated: 'unauthenticated',
   InvalidUsername: 'invalid-username',
   NotFound: 'not-found',
+  RateLimited: 'rate-limited',
   UsernameTaken: 'username-taken',
   EmailTaken: 'email-taken',
   Unavailable: 'unavailable',

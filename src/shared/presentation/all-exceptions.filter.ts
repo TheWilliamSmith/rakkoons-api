@@ -54,6 +54,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
         return VALIDATION_FAILURE;
       }
 
+      if (status === Number(HttpStatus.TOO_MANY_REQUESTS)) {
+        return { status, reason: FailureReason.RateLimited };
+      }
+
       return { status, reason: FailureReason.Unavailable };
     }
 

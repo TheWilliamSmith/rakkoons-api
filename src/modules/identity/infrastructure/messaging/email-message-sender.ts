@@ -9,6 +9,9 @@ import { VerificationCode } from '../../domain/value-objects/verification-code';
 import { IdentityToken } from '../../identity.tokens';
 import { type EmailContent, type EmailTransport } from './outbound-email';
 import { passwordResetCodeEmail } from './templates/password-reset-code.email';
+import { accountDeletionNoticeEmail } from './templates/account-deletion-notice.email';
+import { emailChangeCodeEmail } from './templates/email-change-code.email';
+import { emailChangeNoticeEmail } from './templates/email-change-notice.email';
 import { registrationCodeEmail } from './templates/registration-code.email';
 import { signInCodeEmail } from './templates/sign-in-code.email';
 
@@ -46,6 +49,39 @@ export class EmailMessageSender implements MessageSender {
         code.reveal(),
         this.config.get('SIGNIN_CODE_TTL_MINUTES', { infer: true }),
       ),
+    );
+  }
+
+  sendEmailChangeCode(
+    recipient: EmailAddress,
+    code: VerificationCode,
+  ): Promise<void> {
+    return this.dispatch(
+      recipient,
+      emailChangeCodeEmail(
+        code.reveal(),
+        this.config.get('EMAIL_CHANGE_CODE_TTL_MINUTES', { infer: true }),
+      ),
+    );
+  }
+
+  sendEmailChangeNotice(
+    previousRecipient: EmailAddress,
+    newAddress: EmailAddress,
+  ): Promise<void> {
+    return this.dispatch(
+      previousRecipient,
+      emailChangeNoticeEmail(newAddress.toString()),
+    );
+  }
+
+  sendAccountDeletionNotice(
+    recipient: EmailAddress,
+    scheduledAt: Date,
+  ): Promise<void> {
+    return this.dispatch(
+      recipient,
+      accountDeletionNoticeEmail(scheduledAt.toISOString().slice(0, 10)),
     );
   }
 

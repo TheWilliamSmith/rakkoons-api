@@ -82,7 +82,7 @@ describe('Gestion du compte (e2e)', () => {
   }
 
   describe('lecture du compte', () => {
-    it('répond 200 avec exactement les trois champs attendus', async () => {
+    it('répond 200 avec exactement les champs attendus', async () => {
       await activate();
       const token = await signIn();
 
@@ -90,7 +90,9 @@ describe('Gestion du compte (e2e)', () => {
 
       expect(Object.keys(response.body as object).sort()).toEqual([
         'createdAt',
+        'deletionScheduledAt',
         'email',
+        'pendingEmail',
         'username',
       ]);
       expect((response.body as { username: string }).username).toBe(USERNAME);

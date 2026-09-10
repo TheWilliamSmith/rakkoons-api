@@ -9,12 +9,21 @@ import { PasswordHash } from '../value-objects/password-hash';
 import { PlainPassword } from '../value-objects/plain-password';
 import { Username } from '../value-objects/username';
 import { AccountStatus } from './account-status';
+import {
+  NotificationPreferences,
+  NotificationPreferencesPatch,
+} from './notification-preferences';
+import { AccountDeletionNotScheduledError } from '../errors/account-deletion-not-scheduled.error';
+import { EmailChangeNotRequestedError } from '../errors/email-change-not-requested.error';
 
 interface AccountState {
   id: string;
   username: Username;
   email: EmailAddress;
   passwordHash: PasswordHash;
+  pendingEmail: EmailAddress | null;
+  notifications: NotificationPreferences;
+  deletionScheduledAt: Date | null;
   status: AccountStatus;
   termsAcceptedAt: Date;
   termsVersion: string;
@@ -50,6 +59,13 @@ export class Account {
       username: parameters.username,
       email: parameters.email,
       passwordHash: parameters.passwordHash,
+      pendingEmail: null,
+      notifications: NotificationPreferences.restore({
+        product: true,
+        security: true,
+        reminders: true,
+      }),
+      deletionScheduledAt: null,
       status: AccountStatus.Pending,
       termsAcceptedAt: parameters.registeredAt,
       termsVersion: parameters.termsVersion,
@@ -76,6 +92,20 @@ export class Account {
 
   get passwordHash(): PasswordHash {
     return this.state.passwordHash;
+  }
+
+  get pendingEmail(): EmailAddress | null {
+    return this.state.pendingEmail;
+  }
+
+  get notifications(): NotificationPreferences {
+    return this.state.notifications;
+  }
+
+  get deletionScheduledAt(): Date | null {
+    return this.state.deletionScheduledAt === null
+      ? null
+      : new Date(this.state.deletionScheduledAt);
   }
 
   get status(): AccountStatus {
@@ -148,6 +178,55 @@ export class Account {
     }
 
     this.changePassword(await hasher.hash(parameters.next), changedAt);
+  }
+
+  requestEmailChange(email: EmailAddress, requestedAt: Date): void {
+    this.state.pendingEmail = email;
+    this.state.updatedAt = requestedAt;
+  }
+
+  confirmEmailChange(confirmedAt: Date): EmailAddress {
+    const pending = this.state.pendingEmail;
+
+    if (pending === null) {
+      throw new EmailChangeNotRequestedError();
+    }
+
+    const previous = this.state.email;
+
+    this.state.email = pending;
+    this.state.pendingEmail = null;
+    this.state.updatedAt = confirmedAt;
+
+    return previous;
+  }
+
+  changeNotifications(
+    patch: NotificationPreferencesPatch,
+    changedAt: Date,
+  ): void {
+    const merged = this.state.notifications.merge(patch);
+
+    if (merged.equals(this.state.notifications)) {
+      return;
+    }
+
+    this.state.notifications = merged;
+    this.state.updatedAt = changedAt;
+  }
+
+  scheduleDeletion(scheduledAt: Date, requestedAt: Date): void {
+    this.state.deletionScheduledAt = scheduledAt;
+    this.state.updatedAt = requestedAt;
+  }
+
+  cancelDeletion(cancelledAt: Date): void {
+    if (this.state.deletionScheduledAt === null) {
+      throw new AccountDeletionNotScheduledError();
+    }
+
+    this.state.deletionScheduledAt = null;
+    this.state.updatedAt = cancelledAt;
   }
 
   async verifyCredentials(

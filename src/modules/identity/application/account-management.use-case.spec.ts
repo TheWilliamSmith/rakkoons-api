@@ -55,7 +55,9 @@ describe('gestion du compte', () => {
 
       expect(Object.keys(account).sort()).toEqual([
         'createdAt',
+        'deletionScheduledAt',
         'email',
+        'pendingEmail',
         'username',
       ]);
       expect(account.username).toBe(USERNAME);

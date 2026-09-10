@@ -15,6 +15,9 @@ export class CapturingMessageSender implements MessageSender {
   readonly codes = new Map<string, string>();
   readonly signInCodes = new Map<string, string>();
   readonly passwordResetCodes = new Map<string, string>();
+  readonly emailChangeCodes = new Map<string, string>();
+  readonly emailChangeNotices = new Map<string, string>();
+  readonly deletionNotices = new Map<string, Date>();
   deliveryFails = false;
 
   sendRegistrationCode(
@@ -29,6 +32,32 @@ export class CapturingMessageSender implements MessageSender {
     code: VerificationCode,
   ): Promise<void> {
     return this.capture(this.signInCodes, recipient, code);
+  }
+
+  sendEmailChangeCode(
+    recipient: EmailAddress,
+    code: VerificationCode,
+  ): Promise<void> {
+    return this.capture(this.emailChangeCodes, recipient, code);
+  }
+
+  sendEmailChangeNotice(
+    previousRecipient: EmailAddress,
+    newAddress: EmailAddress,
+  ): Promise<void> {
+    this.emailChangeNotices.set(
+      previousRecipient.toString(),
+      newAddress.toString(),
+    );
+    return Promise.resolve();
+  }
+
+  sendAccountDeletionNotice(
+    recipient: EmailAddress,
+    scheduledAt: Date,
+  ): Promise<void> {
+    this.deletionNotices.set(recipient.toString(), scheduledAt);
+    return Promise.resolve();
   }
 
   sendPasswordResetCode(
@@ -98,6 +127,9 @@ export class AuthE2eHarness {
     this.messages.codes.clear();
     this.messages.signInCodes.clear();
     this.messages.passwordResetCodes.clear();
+    this.messages.emailChangeCodes.clear();
+    this.messages.emailChangeNotices.clear();
+    this.messages.deletionNotices.clear();
     this.messages.deliveryFails = false;
   }
 

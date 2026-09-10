@@ -22,6 +22,24 @@ export const EmailCopy = {
     heading: 'Connectez-vous',
     lede: 'Voici le code à saisir pour ouvrir votre session.',
   },
+  emailChangeCode: {
+    subject: `Confirmez votre nouvelle adresse ${BRAND_NAME}`,
+    preheader: 'Saisissez ce code pour confirmer votre nouvelle adresse.',
+    heading: 'Confirmez votre nouvelle adresse',
+    lede: 'Voici le code à saisir pour rattacher cette adresse à votre compte.',
+  },
+  emailChangeNotice: {
+    subject: `L'adresse de votre compte ${BRAND_NAME} a changé`,
+    preheader: "L'adresse de connexion de votre compte vient d'être modifiée.",
+    heading: 'Votre adresse a été modifiée',
+    lede: "L'adresse de connexion de votre compte vient d'être remplacée.",
+  },
+  accountDeletionNotice: {
+    subject: `Suppression de votre compte ${BRAND_NAME}`,
+    preheader: 'Votre compte sera supprimé, vous pouvez encore revenir.',
+    heading: 'Votre compte va être supprimé',
+    lede: 'Vous avez demandé la suppression de votre compte et de vos données.',
+  },
   passwordResetCode: {
     subject: `Votre code de réinitialisation ${BRAND_NAME}`,
     preheader: 'Saisissez ce code pour choisir un nouveau mot de passe.',
@@ -63,6 +81,14 @@ export function validityLine(minutes: number): string {
   const unit = minutes === SINGLE_MINUTE ? 'minute' : 'minutes';
 
   return `Ce code expire dans ${amount} ${unit}.`;
+}
+
+export function newAddressLine(address: string): string {
+  return `Nouvelle adresse : ${address}`;
+}
+
+export function deletionDeadlineLine(day: string): string {
+  return `Elle deviendra définitive le ${day}. Reconnectez-vous avant cette date pour l'annuler.`;
 }
 
 export function spelledOutCode(code: string): string {

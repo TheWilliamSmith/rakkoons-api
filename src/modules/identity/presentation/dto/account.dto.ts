@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class ChangeUsernameDto {
   @ApiProperty({ example: 'rakkoonette2' })
@@ -26,6 +26,12 @@ export class AccountResponseDto {
 
   @ApiProperty({ example: '2026-01-14T09:12:00.000Z' })
   createdAt!: string;
+
+  @ApiProperty({ example: null, nullable: true })
+  pendingEmail!: string | null;
+
+  @ApiProperty({ example: null, nullable: true })
+  deletionScheduledAt!: string | null;
 }
 
 export class AccountSessionDto {
@@ -40,4 +46,54 @@ export class AccountSessionDto {
 
   @ApiProperty({ example: true })
   isCurrent!: boolean;
+}
+
+export class RequestEmailChangeDto {
+  @ApiProperty({ example: 'nouvelle@rakkoons.fr' })
+  @IsString()
+  email!: string;
+
+  @ApiProperty({ example: 'MotDePasseQuiGagne1!' })
+  @IsString()
+  currentPassword!: string;
+}
+
+export class VerifyEmailChangeDto {
+  @ApiProperty({ example: '429861' })
+  @IsString()
+  code!: string;
+}
+
+export class ScheduleAccountDeletionDto {
+  @ApiProperty({ example: 'MotDePasseQuiGagne1!' })
+  @IsString()
+  currentPassword!: string;
+}
+
+export class NotificationPreferencesDto {
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  @IsBoolean()
+  product?: boolean;
+
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  @IsBoolean()
+  security?: boolean;
+
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  @IsBoolean()
+  reminders?: boolean;
+}
+
+export class NotificationPreferencesResponseDto {
+  @ApiProperty({ example: true })
+  product!: boolean;
+
+  @ApiProperty({ example: true })
+  security!: boolean;
+
+  @ApiProperty({ example: true })
+  reminders!: boolean;
 }

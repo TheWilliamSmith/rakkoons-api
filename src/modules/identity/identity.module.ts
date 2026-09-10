@@ -1,6 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthenticateSessionUseCase } from './application/authenticate-session.use-case';
+import { CancelAccountDeletionUseCase } from './application/cancel-account-deletion.use-case';
+import { ConfirmEmailChangeUseCase } from './application/confirm-email-change.use-case';
+import { ReadNotificationPreferencesUseCase } from './application/read-notification-preferences.use-case';
+import { RequestEmailChangeUseCase } from './application/request-email-change.use-case';
+import { ScheduleAccountDeletionUseCase } from './application/schedule-account-deletion.use-case';
+import { UpdateNotificationPreferencesUseCase } from './application/update-notification-preferences.use-case';
 import { ChangePasswordUseCase } from './application/change-password.use-case';
 import { ChangeUsernameUseCase } from './application/change-username.use-case';
 import { ListAccountSessionsUseCase } from './application/list-account-sessions.use-case';
@@ -10,6 +16,8 @@ import { CheckUsernameAvailabilityUseCase } from './application/check-username-a
 import { ConfirmPasswordResetUseCase } from './application/confirm-password-reset.use-case';
 import { ConfirmRegistrationUseCase } from './application/confirm-registration.use-case';
 import {
+  AccountDeletionPolicy,
+  EmailChangePolicy,
   PasswordResetPolicy,
   RegistrationPolicy,
   SessionPolicy,
@@ -25,7 +33,9 @@ import { VerifySignInCodeUseCase } from './application/verify-sign-in-code.use-c
 import { IdentityToken } from './identity.tokens';
 import { IDENTITY_ADAPTERS } from './identity.adapters';
 import { IDENTITY_USE_CASE_PROVIDERS } from './identity.use-cases';
+import { AccountPurgeScheduler } from './infrastructure/scheduling/account-purge.scheduler';
 import { AccountController } from './presentation/account.controller';
+import { EmailChangeThrottlerGuard } from './presentation/account-email-throttler.guard';
 import {
   PasswordChangeThrottlerGuard,
   UsernameChangeThrottlerGuard,
@@ -62,6 +72,8 @@ const MILLISECONDS_PER_DAY = 24 * 60 * MILLISECONDS_PER_MINUTE;
     PasswordResetAccountThrottlerGuard,
     UsernameChangeThrottlerGuard,
     PasswordChangeThrottlerGuard,
+    EmailChangeThrottlerGuard,
+    AccountPurgeScheduler,
     {
       provide: IdentityToken.RegistrationPolicy,
       inject: [ConfigService],
@@ -91,6 +103,32 @@ const MILLISECONDS_PER_DAY = 24 * 60 * MILLISECONDS_PER_MINUTE;
         maxVerificationAttempts: config.get('VERIFICATION_MAX_ATTEMPTS', {
           infer: true,
         }),
+      }),
+    },
+    {
+      provide: IdentityToken.EmailChangePolicy,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>): EmailChangePolicy => ({
+        journeyLifetime:
+          config.get('EMAIL_CHANGE_JOURNEY_TTL_MINUTES', { infer: true }) *
+          MILLISECONDS_PER_MINUTE,
+        codeLifetime:
+          config.get('EMAIL_CHANGE_CODE_TTL_MINUTES', { infer: true }) *
+          MILLISECONDS_PER_MINUTE,
+        maxVerificationAttempts: config.get('VERIFICATION_MAX_ATTEMPTS', {
+          infer: true,
+        }),
+      }),
+    },
+    {
+      provide: IdentityToken.AccountDeletionPolicy,
+      inject: [ConfigService],
+      useFactory: (
+        config: ConfigService<Env, true>,
+      ): AccountDeletionPolicy => ({
+        gracePeriod:
+          config.get('ACCOUNT_DELETION_GRACE_DAYS', { infer: true }) *
+          MILLISECONDS_PER_DAY,
       }),
     },
     {
@@ -139,6 +177,12 @@ const MILLISECONDS_PER_DAY = 24 * 60 * MILLISECONDS_PER_MINUTE;
     ChangePasswordUseCase,
     ListAccountSessionsUseCase,
     RevokeAccountSessionUseCase,
+    RequestEmailChangeUseCase,
+    ConfirmEmailChangeUseCase,
+    ReadNotificationPreferencesUseCase,
+    UpdateNotificationPreferencesUseCase,
+    ScheduleAccountDeletionUseCase,
+    CancelAccountDeletionUseCase,
   ],
 })
 export class IdentityModule {}

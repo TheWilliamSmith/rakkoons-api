@@ -50,6 +50,19 @@ export class PrismaAccountRepository implements AccountRepository {
       .catch(translateUniqueViolation);
   }
 
+  async listScheduledForDeletionBefore(instant: Date): Promise<Account[]> {
+    const records = await this.context.client().account.findMany({
+      where: { deletionScheduledAt: { not: null, lte: instant } },
+      select: ACCOUNT_SELECTION,
+    });
+
+    return records.map((record) => AccountMapper.toDomain(record));
+  }
+
+  async remove(accountId: string): Promise<void> {
+    await this.context.client().account.delete({ where: { id: accountId } });
+  }
+
   async save(account: Account): Promise<void> {
     const record = AccountMapper.toRecord(account);
 

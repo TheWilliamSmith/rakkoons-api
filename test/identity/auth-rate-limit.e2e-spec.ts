@@ -29,7 +29,7 @@ describe('Limitation de débit sur l authentification (e2e)', () => {
       .query({ username: 'rakkoonette' })
       .expect(429);
 
-    expect(blocked.body).toEqual({ error: { reason: 'unavailable' } });
+    expect(blocked.body).toEqual({ error: { reason: 'rate-limited' } });
   });
 
   it('ne bloque pas l inscription au seuil de la disponibilité', async () => {

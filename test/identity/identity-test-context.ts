@@ -1,4 +1,11 @@
 import { AuthenticateSessionUseCase } from '@identity/application/authenticate-session.use-case';
+import { CancelAccountDeletionUseCase } from '@identity/application/cancel-account-deletion.use-case';
+import { ConfirmEmailChangeUseCase } from '@identity/application/confirm-email-change.use-case';
+import { PurgeDueAccountsUseCase } from '@identity/application/purge-due-accounts.use-case';
+import { ReadNotificationPreferencesUseCase } from '@identity/application/read-notification-preferences.use-case';
+import { RequestEmailChangeUseCase } from '@identity/application/request-email-change.use-case';
+import { ScheduleAccountDeletionUseCase } from '@identity/application/schedule-account-deletion.use-case';
+import { UpdateNotificationPreferencesUseCase } from '@identity/application/update-notification-preferences.use-case';
 import { ChangePasswordUseCase } from '@identity/application/change-password.use-case';
 import { ChangeUsernameUseCase } from '@identity/application/change-username.use-case';
 import { ListAccountSessionsUseCase } from '@identity/application/list-account-sessions.use-case';
@@ -10,6 +17,8 @@ import { ConfirmRegistrationUseCase } from '@identity/application/confirm-regist
 import {
   PasswordResetPolicy,
   RegistrationPolicy,
+  AccountDeletionPolicy,
+  EmailChangePolicy,
   SessionPolicy,
   SignInCodePolicy,
   VerificationPolicy,
@@ -61,6 +70,16 @@ export const TEST_SIGN_IN_CODE_POLICY: SignInCodePolicy = {
   journeyLifetime: 15 * MINUTE,
   codeLifetime: 10 * MINUTE,
   maxVerificationAttempts: 5,
+};
+
+export const TEST_EMAIL_CHANGE_POLICY: EmailChangePolicy = {
+  journeyLifetime: 15 * MINUTE,
+  codeLifetime: 15 * MINUTE,
+  maxVerificationAttempts: 5,
+};
+
+export const TEST_DELETION_POLICY: AccountDeletionPolicy = {
+  gracePeriod: 30 * DAY,
 };
 
 export const TEST_SESSION_POLICY: SessionPolicy = {
@@ -223,6 +242,68 @@ export class IdentityTestContext {
   revokeAccountSession(): RevokeAccountSessionUseCase {
     return new RevokeAccountSessionUseCase({
       sessions: this.sessions,
+      clock: this.clock,
+    });
+  }
+
+  requestEmailChange(): RequestEmailChangeUseCase {
+    return new RequestEmailChangeUseCase({
+      accounts: this.accounts,
+      journeys: this.journeys,
+      unitOfWork: this.unitOfWork,
+      journeyOpener: this.journeyOpener(TEST_EMAIL_CHANGE_POLICY),
+      codes: this.codes,
+      passwordHasher: this.passwordHasher,
+      messages: this.messages,
+      clock: this.clock,
+    });
+  }
+
+  confirmEmailChange(): ConfirmEmailChangeUseCase {
+    return new ConfirmEmailChangeUseCase({
+      accounts: this.accounts,
+      journeys: this.journeys,
+      unitOfWork: this.unitOfWork,
+      secretHasher: this.secretHasher,
+      messages: this.messages,
+      clock: this.clock,
+    });
+  }
+
+  readNotificationPreferences(): ReadNotificationPreferencesUseCase {
+    return new ReadNotificationPreferencesUseCase(this.accounts);
+  }
+
+  updateNotificationPreferences(): UpdateNotificationPreferencesUseCase {
+    return new UpdateNotificationPreferencesUseCase({
+      accounts: this.accounts,
+      clock: this.clock,
+    });
+  }
+
+  scheduleAccountDeletion(): ScheduleAccountDeletionUseCase {
+    return new ScheduleAccountDeletionUseCase({
+      accounts: this.accounts,
+      sessions: this.sessions,
+      unitOfWork: this.unitOfWork,
+      passwordHasher: this.passwordHasher,
+      messages: this.messages,
+      clock: this.clock,
+      policy: TEST_DELETION_POLICY,
+    });
+  }
+
+  cancelAccountDeletion(): CancelAccountDeletionUseCase {
+    return new CancelAccountDeletionUseCase({
+      accounts: this.accounts,
+      clock: this.clock,
+    });
+  }
+
+  purgeDueAccounts(): PurgeDueAccountsUseCase {
+    return new PurgeDueAccountsUseCase({
+      accounts: this.accounts,
+      unitOfWork: this.unitOfWork,
       clock: this.clock,
     });
   }

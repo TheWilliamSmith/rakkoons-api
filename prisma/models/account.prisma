@@ -1,23 +1,31 @@
 enum AccountStatus {
-    PENDING
-    ACTIVE
+  PENDING
+  ACTIVE
 
-    @@map("account_status")
+  @@map("account_status")
 }
 
 model Account {
-    id              String        @id @db.Uuid
-    username        String        @unique @db.Citext
-    email           String        @unique @db.Citext
-    passwordHash    String        @map("password_hash")
-    status          AccountStatus @default(PENDING)
-    termsAcceptedAt DateTime      @map("terms_accepted_at")
-    termsVersion    String        @map("terms_version")
-    createdAt       DateTime      @map("created_at")
-    updatedAt       DateTime      @map("updated_at")
+  id                String        @id @db.Uuid
+  username          String        @unique @db.Citext
+  email             String        @unique @db.Citext
+  passwordHash      String        @map("password_hash")
+  pendingEmail      String?       @map("pending_email") @db.Citext
+  status            AccountStatus @default(PENDING)
+  termsAcceptedAt   DateTime      @map("terms_accepted_at")
+  termsVersion      String        @map("terms_version")
+  notifiesProduct   Boolean       @default(true) @map("notifies_product")
+  notifiesSecurity  Boolean       @default(true) @map("notifies_security")
+  notifiesReminders Boolean       @default(true) @map("notifies_reminders")
 
-    verificationJourneys VerificationJourney[]
-    sessions             Session[]
+  deletionScheduledAt DateTime? @map("deletion_scheduled_at")
 
-    @@map("accounts")
+  createdAt DateTime @map("created_at")
+  updatedAt DateTime @map("updated_at")
+
+  verificationJourneys VerificationJourney[]
+  sessions             Session[]
+
+  @@index([deletionScheduledAt])
+  @@map("accounts")
 }

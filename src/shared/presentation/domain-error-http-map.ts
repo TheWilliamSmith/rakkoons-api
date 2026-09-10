@@ -35,6 +35,22 @@ export const DOMAIN_ERROR_HTTP_MAP: Record<string, HttpFailure> = {
     status: HttpStatus.UNPROCESSABLE_ENTITY,
     reason: FailureReason.InvalidCredentials,
   },
+  EmailChangeCodeRejectedError: {
+    status: HttpStatus.UNPROCESSABLE_ENTITY,
+    reason: FailureReason.InvalidCode,
+  },
+  EmailChangeAttemptsExhaustedError: {
+    status: HttpStatus.UNPROCESSABLE_ENTITY,
+    reason: FailureReason.InvalidCode,
+  },
+  EmailChangeNotRequestedError: {
+    status: HttpStatus.UNPROCESSABLE_ENTITY,
+    reason: FailureReason.InvalidCode,
+  },
+  AccountDeletionNotScheduledError: {
+    status: HttpStatus.NOT_FOUND,
+    reason: FailureReason.NotFound,
+  },
   SessionNotFoundError: {
     status: HttpStatus.NOT_FOUND,
     reason: FailureReason.NotFound,

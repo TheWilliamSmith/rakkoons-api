@@ -1,5 +1,6 @@
 import { Account } from '../../domain/account/account';
 import { AccountStatus } from '../../domain/account/account-status';
+import { NotificationPreferences } from '../../domain/account/notification-preferences';
 import { EmailAddress } from '../../domain/value-objects/email-address';
 import { PasswordHash } from '../../domain/value-objects/password-hash';
 import { Username } from '../../domain/value-objects/username';
@@ -9,6 +10,11 @@ export interface AccountRecord {
   username: string;
   email: string;
   passwordHash: string;
+  pendingEmail: string | null;
+  notifiesProduct: boolean;
+  notifiesSecurity: boolean;
+  notifiesReminders: boolean;
+  deletionScheduledAt: Date | null;
   status: 'PENDING' | 'ACTIVE';
   termsAcceptedAt: Date;
   termsVersion: string;
@@ -31,6 +37,11 @@ export const ACCOUNT_SELECTION = {
   username: true,
   email: true,
   passwordHash: true,
+  pendingEmail: true,
+  notifiesProduct: true,
+  notifiesSecurity: true,
+  notifiesReminders: true,
+  deletionScheduledAt: true,
   status: true,
   termsAcceptedAt: true,
   termsVersion: true,
@@ -45,6 +56,16 @@ export class AccountMapper {
       username: Username.create(record.username),
       email: EmailAddress.create(record.email),
       passwordHash: PasswordHash.fromStoredValue(record.passwordHash),
+      pendingEmail:
+        record.pendingEmail === null
+          ? null
+          : EmailAddress.create(record.pendingEmail),
+      notifications: NotificationPreferences.restore({
+        product: record.notifiesProduct,
+        security: record.notifiesSecurity,
+        reminders: record.notifiesReminders,
+      }),
+      deletionScheduledAt: record.deletionScheduledAt,
       status: STATUS_TO_DOMAIN[record.status],
       termsAcceptedAt: record.termsAcceptedAt,
       termsVersion: record.termsVersion,
@@ -59,6 +80,12 @@ export class AccountMapper {
       username: account.username.toString(),
       email: account.email.toString(),
       passwordHash: account.passwordHash.toString(),
+      pendingEmail:
+        account.pendingEmail === null ? null : account.pendingEmail.toString(),
+      notifiesProduct: account.notifications.product,
+      notifiesSecurity: account.notifications.security,
+      notifiesReminders: account.notifications.reminders,
+      deletionScheduledAt: account.deletionScheduledAt,
       status: STATUS_TO_RECORD[account.status],
       termsAcceptedAt: account.termsAcceptedAt,
       termsVersion: account.termsVersion,

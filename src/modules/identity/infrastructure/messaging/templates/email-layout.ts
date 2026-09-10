@@ -14,6 +14,20 @@ export interface CodeEmailParameters {
   validityMinutes: number;
 }
 
+export interface NoticeEmailParameters {
+  copy: CodeEmailCopy;
+  detail: string;
+}
+
+interface EmailBody {
+  subject: string;
+  preheader: string;
+  heading: string;
+  lede: string;
+  highlight: string | null;
+  detail: string;
+}
+
 const ESCAPED_CHARACTERS: Record<string, string> = {
   '&': '&amp;',
   '<': '&lt;',
@@ -30,14 +44,32 @@ function escape(value: string): string {
 }
 
 export function renderCodeEmail(parameters: CodeEmailParameters): EmailContent {
+  return render({
+    ...parameters.copy,
+    highlight: parameters.code,
+    detail: validityLine(parameters.validityMinutes),
+  });
+}
+
+export function renderNoticeEmail(
+  parameters: NoticeEmailParameters,
+): EmailContent {
+  return render({
+    ...parameters.copy,
+    highlight: null,
+    detail: parameters.detail,
+  });
+}
+
+function render(body: EmailBody): EmailContent {
   return {
-    subject: parameters.copy.subject,
-    html: renderHtml(parameters),
-    text: renderText(parameters),
+    subject: body.subject,
+    html: renderHtml(body),
+    text: renderText(body),
   };
 }
 
-function renderHtml(parameters: CodeEmailParameters): string {
+function renderHtml(body: EmailBody): string {
   return [
     '<!DOCTYPE html>',
     '<html lang="fr">',
@@ -46,20 +78,20 @@ function renderHtml(parameters: CodeEmailParameters): string {
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
     '<meta name="color-scheme" content="light">',
     '<meta name="supported-color-schemes" content="light">',
-    `<title>${escape(parameters.copy.subject)}</title>`,
+    `<title>${escape(body.subject)}</title>`,
     `<style>${NARROW_CARD_RULE}</style>`,
     '</head>',
     `<body style="${EmailStyle.Body}">`,
-    `<div style="${EmailStyle.Preheader}">${escape(parameters.copy.preheader)}</div>`,
+    `<div style="${EmailStyle.Preheader}">${escape(body.preheader)}</div>`,
     table(EmailStyle.Page, '100%', [
       `<tr><td align="center" style="${EmailStyle.PageCell}">`,
       table(EmailStyle.Card, EmailMetrics.CardWidthAttribute, [
         `<tr><td class="rk-card" style="${EmailStyle.CardBody}">`,
         renderLogo(),
-        `<h1 style="${EmailStyle.Heading}">${escape(parameters.copy.heading)}</h1>`,
-        `<p style="${EmailStyle.Lede}">${escape(parameters.copy.lede)}</p>`,
-        renderCode(parameters.code),
-        `<p style="${EmailStyle.Validity}">${escape(validityLine(parameters.validityMinutes))}</p>`,
+        `<h1 style="${EmailStyle.Heading}">${escape(body.heading)}</h1>`,
+        `<p style="${EmailStyle.Lede}">${escape(body.lede)}</p>`,
+        body.highlight === null ? '' : renderCode(body.highlight),
+        `<p style="${detailStyle(body)}">${escape(body.detail)}</p>`,
         `<hr style="${EmailStyle.Rule}">`,
         `<p style="${EmailStyle.Footer}">${escape(EmailCopy.footer)}</p>`,
         '</td></tr>',
@@ -69,6 +101,12 @@ function renderHtml(parameters: CodeEmailParameters): string {
     '</body>',
     '</html>',
   ].join('');
+}
+
+function detailStyle(body: EmailBody): string {
+  return body.highlight === null
+    ? EmailStyle.DetachedDetail
+    : EmailStyle.Validity;
 }
 
 function renderLogo(): string {
@@ -104,17 +142,16 @@ function table(style: string, width: string, rows: string[]): string {
   ].join('');
 }
 
-function renderText(parameters: CodeEmailParameters): string {
+function renderText(body: EmailBody): string {
   return [
     BRAND_NAME,
     '',
-    parameters.copy.heading,
+    body.heading,
     '',
-    parameters.copy.lede,
+    body.lede,
+    ...(body.highlight === null ? [] : ['', body.highlight]),
     '',
-    parameters.code,
-    '',
-    validityLine(parameters.validityMinutes),
+    body.detail,
     '',
     EmailCopy.footer,
   ].join('\n');

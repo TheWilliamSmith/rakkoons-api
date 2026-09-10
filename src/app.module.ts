@@ -2,6 +2,7 @@ import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppConfigModule } from './config/env.config';
 import { type Env } from './config/env.validation';
@@ -133,6 +134,7 @@ const PRETTY_LOG_MESSAGE_FORMAT =
         };
       },
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     IdentityModule,
   ],

@@ -6,6 +6,7 @@ import { type Env } from '../../../config/env.validation';
 export const SIGNUP_COOKIE = 'rk_signup';
 export const SIGNIN_COOKIE = 'rk_signin';
 export const SESSION_COOKIE = 'rk_session';
+export const EMAIL_CHANGE_COOKIE = 'rk_email_change';
 export const PASSWORD_RESET_COOKIE = 'rk_password_reset';
 
 @Injectable()

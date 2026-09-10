@@ -10,6 +10,18 @@ export interface MessageSender {
     recipient: EmailAddress,
     code: VerificationCode,
   ): Promise<void>;
+  sendEmailChangeCode(
+    recipient: EmailAddress,
+    code: VerificationCode,
+  ): Promise<void>;
+  sendEmailChangeNotice(
+    previousRecipient: EmailAddress,
+    newAddress: EmailAddress,
+  ): Promise<void>;
+  sendAccountDeletionNotice(
+    recipient: EmailAddress,
+    scheduledAt: Date,
+  ): Promise<void>;
   sendPasswordResetCode(
     recipient: EmailAddress,
     code: VerificationCode,

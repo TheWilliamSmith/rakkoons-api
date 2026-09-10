@@ -36,6 +36,21 @@ export class InMemoryAccountRepository implements AccountRepository {
     return Promise.resolve();
   }
 
+  listScheduledForDeletionBefore(instant: Date): Promise<Account[]> {
+    return Promise.resolve(
+      [...this.accounts.values()].filter((account) => {
+        const scheduled = account.deletionScheduledAt;
+
+        return scheduled !== null && scheduled.getTime() <= instant.getTime();
+      }),
+    );
+  }
+
+  remove(accountId: string): Promise<void> {
+    this.accounts.delete(accountId);
+    return Promise.resolve();
+  }
+
   count(): number {
     return this.accounts.size;
   }

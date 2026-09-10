@@ -8,4 +8,6 @@ export interface AccountRepository {
   findById(id: string): Promise<Account | null>;
   add(account: Account): Promise<void>;
   save(account: Account): Promise<void>;
+  listScheduledForDeletionBefore(instant: Date): Promise<Account[]>;
+  remove(accountId: string): Promise<void>;
 }

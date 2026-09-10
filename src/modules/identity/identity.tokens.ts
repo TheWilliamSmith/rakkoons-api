@@ -14,9 +14,12 @@ export const IdentityToken = {
   Clock: Symbol('Clock'),
   RegistrationPolicy: Symbol('RegistrationPolicy'),
   SignInCodePolicy: Symbol('SignInCodePolicy'),
+  EmailChangePolicy: Symbol('EmailChangePolicy'),
+  AccountDeletionPolicy: Symbol('AccountDeletionPolicy'),
   PasswordResetPolicy: Symbol('PasswordResetPolicy'),
   SessionPolicy: Symbol('SessionPolicy'),
   RegistrationJourneyOpener: Symbol('RegistrationJourneyOpener'),
   SignInCodeJourneyOpener: Symbol('SignInCodeJourneyOpener'),
+  EmailChangeJourneyOpener: Symbol('EmailChangeJourneyOpener'),
   PasswordResetJourneyOpener: Symbol('PasswordResetJourneyOpener'),
 } as const;

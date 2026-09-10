@@ -1,5 +1,12 @@
 import { Provider } from '@nestjs/common';
 import { AuthenticateSessionUseCase } from './application/authenticate-session.use-case';
+import { CancelAccountDeletionUseCase } from './application/cancel-account-deletion.use-case';
+import { ConfirmEmailChangeUseCase } from './application/confirm-email-change.use-case';
+import { PurgeDueAccountsUseCase } from './application/purge-due-accounts.use-case';
+import { ReadNotificationPreferencesUseCase } from './application/read-notification-preferences.use-case';
+import { RequestEmailChangeUseCase } from './application/request-email-change.use-case';
+import { ScheduleAccountDeletionUseCase } from './application/schedule-account-deletion.use-case';
+import { UpdateNotificationPreferencesUseCase } from './application/update-notification-preferences.use-case';
 import { ChangePasswordUseCase } from './application/change-password.use-case';
 import { ChangeUsernameUseCase } from './application/change-username.use-case';
 import { ListAccountSessionsUseCase } from './application/list-account-sessions.use-case';
@@ -9,6 +16,7 @@ import { CheckUsernameAvailabilityUseCase } from './application/check-username-a
 import { ConfirmPasswordResetUseCase } from './application/confirm-password-reset.use-case';
 import { ConfirmRegistrationUseCase } from './application/confirm-registration.use-case';
 import {
+  AccountDeletionPolicy,
   PasswordResetPolicy,
   RegistrationPolicy,
   SessionPolicy,
@@ -345,6 +353,140 @@ export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
       clock: Clock,
     ): RevokeSessionUseCase =>
       new RevokeSessionUseCase({ sessions, secretHasher, clock }),
+  },
+  journeyOpenerProvider(
+    IdentityToken.EmailChangeJourneyOpener,
+    IdentityToken.EmailChangePolicy,
+  ),
+  {
+    provide: RequestEmailChangeUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.VerificationJourneyRepository,
+      IdentityToken.UnitOfWork,
+      IdentityToken.EmailChangeJourneyOpener,
+      IdentityToken.VerificationCodeGenerator,
+      IdentityToken.PasswordHasher,
+      IdentityToken.MessageSender,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      journeys: VerificationJourneyRepository,
+      unitOfWork: UnitOfWork,
+      journeyOpener: VerificationJourneyOpener,
+      codes: VerificationCodeGenerator,
+      passwordHasher: PasswordHasher,
+      messages: MessageSender,
+      clock: Clock,
+    ): RequestEmailChangeUseCase =>
+      new RequestEmailChangeUseCase({
+        accounts,
+        journeys,
+        unitOfWork,
+        journeyOpener,
+        codes,
+        passwordHasher,
+        messages,
+        clock,
+      }),
+  },
+  {
+    provide: ConfirmEmailChangeUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.VerificationJourneyRepository,
+      IdentityToken.UnitOfWork,
+      IdentityToken.SecretHasher,
+      IdentityToken.MessageSender,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      journeys: VerificationJourneyRepository,
+      unitOfWork: UnitOfWork,
+      secretHasher: SecretHasher,
+      messages: MessageSender,
+      clock: Clock,
+    ): ConfirmEmailChangeUseCase =>
+      new ConfirmEmailChangeUseCase({
+        accounts,
+        journeys,
+        unitOfWork,
+        secretHasher,
+        messages,
+        clock,
+      }),
+  },
+  {
+    provide: ReadNotificationPreferencesUseCase,
+    inject: [IdentityToken.AccountRepository],
+    useFactory: (
+      accounts: AccountRepository,
+    ): ReadNotificationPreferencesUseCase =>
+      new ReadNotificationPreferencesUseCase(accounts),
+  },
+  {
+    provide: UpdateNotificationPreferencesUseCase,
+    inject: [IdentityToken.AccountRepository, IdentityToken.Clock],
+    useFactory: (
+      accounts: AccountRepository,
+      clock: Clock,
+    ): UpdateNotificationPreferencesUseCase =>
+      new UpdateNotificationPreferencesUseCase({ accounts, clock }),
+  },
+  {
+    provide: ScheduleAccountDeletionUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.SessionRepository,
+      IdentityToken.UnitOfWork,
+      IdentityToken.PasswordHasher,
+      IdentityToken.MessageSender,
+      IdentityToken.Clock,
+      IdentityToken.AccountDeletionPolicy,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      sessions: SessionRepository,
+      unitOfWork: UnitOfWork,
+      passwordHasher: PasswordHasher,
+      messages: MessageSender,
+      clock: Clock,
+      policy: AccountDeletionPolicy,
+    ): ScheduleAccountDeletionUseCase =>
+      new ScheduleAccountDeletionUseCase({
+        accounts,
+        sessions,
+        unitOfWork,
+        passwordHasher,
+        messages,
+        clock,
+        policy,
+      }),
+  },
+  {
+    provide: CancelAccountDeletionUseCase,
+    inject: [IdentityToken.AccountRepository, IdentityToken.Clock],
+    useFactory: (
+      accounts: AccountRepository,
+      clock: Clock,
+    ): CancelAccountDeletionUseCase =>
+      new CancelAccountDeletionUseCase({ accounts, clock }),
+  },
+  {
+    provide: PurgeDueAccountsUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.UnitOfWork,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      unitOfWork: UnitOfWork,
+      clock: Clock,
+    ): PurgeDueAccountsUseCase =>
+      new PurgeDueAccountsUseCase({ accounts, unitOfWork, clock }),
   },
   {
     provide: ReadAccountUseCase,
