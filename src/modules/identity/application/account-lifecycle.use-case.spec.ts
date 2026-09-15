@@ -8,6 +8,7 @@ import { AccountDeletionNotScheduledError } from '../domain/errors/account-delet
 import { CurrentPasswordRejectedError } from '../domain/errors/current-password-rejected.error';
 import { EmailAlreadyRegisteredError } from '../domain/errors/email-already-registered.error';
 import { EmailChangeCodeRejectedError } from '../domain/errors/email-change-code-rejected.error';
+import { EmailChangeNotRequestedError } from '../domain/errors/email-change-not-requested.error';
 import { SessionNotEstablishedError } from '../domain/errors/session-not-established.error';
 
 const EMAIL = 'william@rakkoons.fr';
@@ -165,6 +166,104 @@ describe('cycle de vie du compte', () => {
           .confirmEmailChange()
           .execute({ accountId, journeyId: first.journeyId, code: TEST_CODE }),
       ).rejects.toThrow(EmailChangeCodeRejectedError);
+    });
+  });
+
+  describe('annulation du changement d adresse', () => {
+    it('efface l adresse en attente et garde l adresse confirmée', async () => {
+      const accountId = await activate();
+      await context.requestEmailChange().execute({
+        accountId,
+        email: NEW_EMAIL,
+        currentPassword: TEST_PASSWORD,
+      });
+
+      await context.cancelEmailChange().execute({ accountId });
+
+      const account = await context.readAccount().execute({ accountId });
+
+      expect(account.pendingEmail).toBeNull();
+      expect(account.email).toBe(EMAIL);
+      expect(context.messages.emailChangeNotices).toHaveLength(0);
+    });
+
+    it('invalide le code déjà envoyé', async () => {
+      const accountId = await activate();
+      const requested = await context.requestEmailChange().execute({
+        accountId,
+        email: NEW_EMAIL,
+        currentPassword: TEST_PASSWORD,
+      });
+
+      await context.cancelEmailChange().execute({ accountId });
+
+      await expect(
+        context.confirmEmailChange().execute({
+          accountId,
+          journeyId: requested.journeyId,
+          code: TEST_CODE,
+        }),
+      ).rejects.toThrow(EmailChangeCodeRejectedError);
+      expect((await context.readAccount().execute({ accountId })).email).toBe(
+        EMAIL,
+      );
+    });
+
+    it('refuse une annulation sans changement en attente', async () => {
+      const accountId = await activate();
+
+      await expect(
+        context.cancelEmailChange().execute({ accountId }),
+      ).rejects.toThrow(EmailChangeNotRequestedError);
+    });
+
+    it('laisse redemander un changement après une annulation', async () => {
+      const accountId = await activate();
+      await context.requestEmailChange().execute({
+        accountId,
+        email: NEW_EMAIL,
+        currentPassword: TEST_PASSWORD,
+      });
+      await context.cancelEmailChange().execute({ accountId });
+
+      const requested = await context.requestEmailChange().execute({
+        accountId,
+        email: NEW_EMAIL,
+        currentPassword: TEST_PASSWORD,
+      });
+      await context.confirmEmailChange().execute({
+        accountId,
+        journeyId: requested.journeyId,
+        code: TEST_CODE,
+      });
+
+      expect((await context.readAccount().execute({ accountId })).email).toBe(
+        NEW_EMAIL,
+      );
+    });
+
+    it('ne touche pas au changement en attente d un autre compte', async () => {
+      const otherId = await activate('autrekoon', 'autre@rakkoons.fr');
+      await context.requestEmailChange().execute({
+        accountId: otherId,
+        email: NEW_EMAIL,
+        currentPassword: TEST_PASSWORD,
+      });
+      const accountId = await activate();
+
+      await expect(
+        context.cancelEmailChange().execute({ accountId }),
+      ).rejects.toThrow(EmailChangeNotRequestedError);
+      expect(
+        (await context.readAccount().execute({ accountId: otherId }))
+          .pendingEmail,
+      ).toBe(NEW_EMAIL);
+    });
+
+    it('refuse une annulation sans compte établi', async () => {
+      await expect(
+        context.cancelEmailChange().execute({ accountId: 'inconnu' }),
+      ).rejects.toThrow(SessionNotEstablishedError);
     });
   });
 

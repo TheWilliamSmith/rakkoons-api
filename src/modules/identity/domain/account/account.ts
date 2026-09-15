@@ -201,6 +201,15 @@ export class Account {
     return previous;
   }
 
+  cancelEmailChange(cancelledAt: Date): void {
+    if (this.state.pendingEmail === null) {
+      throw new EmailChangeNotRequestedError();
+    }
+
+    this.state.pendingEmail = null;
+    this.state.updatedAt = cancelledAt;
+  }
+
   changeNotifications(
     patch: NotificationPreferencesPatch,
     changedAt: Date,

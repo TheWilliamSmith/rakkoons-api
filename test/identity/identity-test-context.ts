@@ -1,5 +1,6 @@
 import { AuthenticateSessionUseCase } from '@identity/application/authenticate-session.use-case';
 import { CancelAccountDeletionUseCase } from '@identity/application/cancel-account-deletion.use-case';
+import { CancelEmailChangeUseCase } from '@identity/application/cancel-email-change.use-case';
 import { ConfirmEmailChangeUseCase } from '@identity/application/confirm-email-change.use-case';
 import { PurgeDueAccountsUseCase } from '@identity/application/purge-due-accounts.use-case';
 import { ReadNotificationPreferencesUseCase } from '@identity/application/read-notification-preferences.use-case';
@@ -270,6 +271,15 @@ export class IdentityTestContext {
       unitOfWork: this.unitOfWork,
       secretHasher: this.secretHasher,
       messages: this.messages,
+      clock: this.clock,
+    });
+  }
+
+  cancelEmailChange(): CancelEmailChangeUseCase {
+    return new CancelEmailChangeUseCase({
+      accounts: this.accounts,
+      journeys: this.journeys,
+      unitOfWork: this.unitOfWork,
       clock: this.clock,
     });
   }
