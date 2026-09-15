@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthenticateSessionUseCase } from './application/authenticate-session.use-case';
 import { CancelAccountDeletionUseCase } from './application/cancel-account-deletion.use-case';
+import { CancelEmailChangeUseCase } from './application/cancel-email-change.use-case';
 import { ConfirmEmailChangeUseCase } from './application/confirm-email-change.use-case';
 import { ReadNotificationPreferencesUseCase } from './application/read-notification-preferences.use-case';
 import { RequestEmailChangeUseCase } from './application/request-email-change.use-case';
@@ -27,6 +28,9 @@ import { OpenSessionUseCase } from './application/open-session.use-case';
 import { RegisterAccountUseCase } from './application/register-account.use-case';
 import { RequestPasswordResetUseCase } from './application/request-password-reset.use-case';
 import { RequestSignInCodeUseCase } from './application/request-sign-in-code.use-case';
+import { ResendEmailChangeCodeUseCase } from './application/resend-email-change-code.use-case';
+import { ResendPasswordResetCodeUseCase } from './application/resend-password-reset-code.use-case';
+import { ResendRegistrationCodeUseCase } from './application/resend-registration-code.use-case';
 import { RevokeSessionUseCase } from './application/revoke-session.use-case';
 import { VerifyPasswordResetCodeUseCase } from './application/verify-password-reset-code.use-case';
 import { VerifySignInCodeUseCase } from './application/verify-sign-in-code.use-case';
@@ -35,6 +39,7 @@ import { IDENTITY_ADAPTERS } from './identity.adapters';
 import { IDENTITY_USE_CASE_PROVIDERS } from './identity.use-cases';
 import { AccountPurgeScheduler } from './infrastructure/scheduling/account-purge.scheduler';
 import { AccountController } from './presentation/account.controller';
+import { AccountEmailController } from './presentation/account-email.controller';
 import { EmailChangeThrottlerGuard } from './presentation/account-email-throttler.guard';
 import {
   PasswordChangeThrottlerGuard,
@@ -45,6 +50,7 @@ import { SubjectRateLimiter } from './presentation/subject-rate-limiter';
 import { IdentityCookies } from './presentation/identity-cookies';
 import { PasswordResetAccountThrottlerGuard } from './presentation/password-reset-account-throttler.guard';
 import { PasswordResetController } from './presentation/password-reset.controller';
+import { RESEND_THROTTLER_PROVIDERS } from './presentation/resend-throttler.guard';
 import { SessionController } from './presentation/session.controller';
 import { SessionGuard } from './presentation/session.guard';
 import { SignInCodeController } from './presentation/sign-in-code.controller';
@@ -61,6 +67,7 @@ const MILLISECONDS_PER_DAY = 24 * 60 * MILLISECONDS_PER_MINUTE;
     SignInCodeController,
     SessionController,
     AccountController,
+    AccountEmailController,
   ],
   providers: [
     ...IDENTITY_ADAPTERS,
@@ -73,6 +80,7 @@ const MILLISECONDS_PER_DAY = 24 * 60 * MILLISECONDS_PER_MINUTE;
     UsernameChangeThrottlerGuard,
     PasswordChangeThrottlerGuard,
     EmailChangeThrottlerGuard,
+    ...RESEND_THROTTLER_PROVIDERS,
     AccountPurgeScheduler,
     {
       provide: IdentityToken.RegistrationPolicy,
@@ -183,6 +191,10 @@ const MILLISECONDS_PER_DAY = 24 * 60 * MILLISECONDS_PER_MINUTE;
     UpdateNotificationPreferencesUseCase,
     ScheduleAccountDeletionUseCase,
     CancelAccountDeletionUseCase,
+    CancelEmailChangeUseCase,
+    ResendRegistrationCodeUseCase,
+    ResendPasswordResetCodeUseCase,
+    ResendEmailChangeCodeUseCase,
   ],
 })
 export class IdentityModule {}

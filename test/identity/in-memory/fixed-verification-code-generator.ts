@@ -4,7 +4,11 @@ import { VerificationCode } from '@identity/domain/value-objects/verification-co
 export class FixedVerificationCodeGenerator implements VerificationCodeGenerator {
   generatedCount = 0;
 
-  constructor(private readonly value: string) {}
+  constructor(private value: string) {}
+
+  useNext(value: string): void {
+    this.value = value;
+  }
 
   generate(): VerificationCode {
     this.generatedCount += 1;

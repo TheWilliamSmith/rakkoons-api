@@ -44,6 +44,7 @@ export const envSchema = z.object({
   EMAIL_CHANGE_CODE_TTL_MINUTES: durationInMinutes(15),
   ACCOUNT_DELETION_GRACE_DAYS: durationInDays(30),
   RATE_LIMIT_EMAIL_CHANGE_PER_ACCOUNT_HOURLY: rateLimit(5),
+  RATE_LIMIT_EMAIL_CHANGE_RESEND_PER_ACCOUNT_HOURLY: rateLimit(3),
   PASSWORD_RESET_JOURNEY_TTL_MINUTES: durationInMinutes(15),
   PASSWORD_RESET_CODE_TTL_MINUTES: durationInMinutes(15),
   VERIFICATION_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
@@ -59,6 +60,7 @@ export const envSchema = z.object({
   RATE_LIMIT_USERNAME_AVAILABILITY: rateLimit(60),
   RATE_LIMIT_SIGN_UP: rateLimit(5),
   RATE_LIMIT_SIGN_UP_VERIFY: rateLimit(10),
+  RATE_LIMIT_SIGN_UP_RESEND: rateLimit(3),
   RATE_LIMIT_SIGN_IN_PER_IP: rateLimit(10),
   RATE_LIMIT_SIGN_IN_PER_ACCOUNT: rateLimit(5),
   SIGNIN_CODE_MIN_INTERVAL_SECONDS: z.coerce
@@ -75,6 +77,8 @@ export const envSchema = z.object({
   RATE_LIMIT_PASSWORD_RESET_PER_ACCOUNT: rateLimit(3),
   RATE_LIMIT_PASSWORD_RESET_VERIFY: rateLimit(10),
   RATE_LIMIT_PASSWORD_RESET_CONFIRM: rateLimit(10),
+  RATE_LIMIT_PASSWORD_RESET_RESEND: rateLimit(3),
+  RATE_LIMIT_RESEND_PER_JOURNEY_HOURLY: rateLimit(3),
 });
 
 export type Env = z.infer<typeof envSchema>;

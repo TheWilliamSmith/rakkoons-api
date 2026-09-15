@@ -18,6 +18,7 @@ import { CheckUsernameAvailabilityUseCase } from '../application/check-username-
 import { ConfirmRegistrationUseCase } from '../application/confirm-registration.use-case';
 import { OpenSessionUseCase } from '../application/open-session.use-case';
 import { RegisterAccountUseCase } from '../application/register-account.use-case';
+import { ResendRegistrationCodeUseCase } from '../application/resend-registration-code.use-case';
 import { VerificationAttemptsExhaustedError } from '../domain/errors/verification-attempts-exhausted.error';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
@@ -31,6 +32,7 @@ import {
   SESSION_COOKIE,
   SIGNUP_COOKIE,
 } from './identity-cookies';
+import { SignUpResendThrottlerGuard } from './resend-throttler.guard';
 import { SignInAccountThrottlerGuard } from './sign-in-account-throttler.guard';
 import { ThrottlerName, throttleOnly } from './throttling';
 
@@ -42,6 +44,7 @@ export class AuthController {
     private readonly checkUsernameAvailability: CheckUsernameAvailabilityUseCase,
     private readonly registerAccount: RegisterAccountUseCase,
     private readonly confirmRegistration: ConfirmRegistrationUseCase,
+    private readonly resendRegistrationCode: ResendRegistrationCodeUseCase,
     private readonly openSession: OpenSessionUseCase,
     private readonly cookies: IdentityCookies,
   ) {}
@@ -94,6 +97,16 @@ export class AuthController {
     }
 
     this.cookies.clear(response, SIGNUP_COOKIE);
+  }
+
+  @Post('sign-up/resend')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @throttleOnly(ThrottlerName.SignUpResend)
+  @UseGuards(SignUpResendThrottlerGuard)
+  async resendSignUpCode(@Req() request: Request): Promise<void> {
+    await this.resendRegistrationCode.execute({
+      journeyId: this.cookies.read(request, SIGNUP_COOKIE),
+    });
   }
 
   @Post('sign-in')

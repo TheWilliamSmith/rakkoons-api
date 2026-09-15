@@ -98,6 +98,11 @@ const PRETTY_LOG_MESSAGE_FORMAT =
               limit: config.get('RATE_LIMIT_SIGN_UP_VERIFY', { infer: true }),
             },
             {
+              name: ThrottlerName.SignUpResend,
+              ttl,
+              limit: config.get('RATE_LIMIT_SIGN_UP_RESEND', { infer: true }),
+            },
+            {
               name: ThrottlerName.SignIn,
               ttl,
               limit: config.get('RATE_LIMIT_SIGN_IN_PER_IP', { infer: true }),
@@ -127,6 +132,13 @@ const PRETTY_LOG_MESSAGE_FORMAT =
               name: ThrottlerName.PasswordResetConfirm,
               ttl,
               limit: config.get('RATE_LIMIT_PASSWORD_RESET_CONFIRM', {
+                infer: true,
+              }),
+            },
+            {
+              name: ThrottlerName.PasswordResetResend,
+              ttl,
+              limit: config.get('RATE_LIMIT_PASSWORD_RESET_RESEND', {
                 infer: true,
               }),
             },

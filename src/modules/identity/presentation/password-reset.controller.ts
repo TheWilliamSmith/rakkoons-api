@@ -13,6 +13,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { type Request, type Response } from 'express';
 import { ConfirmPasswordResetUseCase } from '../application/confirm-password-reset.use-case';
 import { RequestPasswordResetUseCase } from '../application/request-password-reset.use-case';
+import { ResendPasswordResetCodeUseCase } from '../application/resend-password-reset-code.use-case';
 import { VerifyPasswordResetCodeUseCase } from '../application/verify-password-reset-code.use-case';
 import { PasswordResetAttemptsExhaustedError } from '../domain/errors/password-reset-attempts-exhausted.error';
 import {
@@ -22,6 +23,7 @@ import {
 } from './dto/password-reset.dto';
 import { IdentityCookies, PASSWORD_RESET_COOKIE } from './identity-cookies';
 import { PasswordResetAccountThrottlerGuard } from './password-reset-account-throttler.guard';
+import { PasswordResetResendThrottlerGuard } from './resend-throttler.guard';
 import { ThrottlerName, throttleOnly } from './throttling';
 
 @ApiTags('auth')
@@ -32,6 +34,7 @@ export class PasswordResetController {
     private readonly requestPasswordReset: RequestPasswordResetUseCase,
     private readonly verifyPasswordResetCode: VerifyPasswordResetCodeUseCase,
     private readonly confirmPasswordReset: ConfirmPasswordResetUseCase,
+    private readonly resendPasswordResetCode: ResendPasswordResetCodeUseCase,
     private readonly cookies: IdentityCookies,
   ) {}
 
@@ -51,6 +54,16 @@ export class PasswordResetController {
       journey.journeyId,
       journey.journeyExpiresAt,
     );
+  }
+
+  @Post('password-reset/resend')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @throttleOnly(ThrottlerName.PasswordResetResend)
+  @UseGuards(PasswordResetResendThrottlerGuard)
+  async resend(@Req() request: Request): Promise<void> {
+    await this.resendPasswordResetCode.execute({
+      journeyId: this.cookies.read(request, PASSWORD_RESET_COOKIE),
+    });
   }
 
   @Post('password-reset/verify')

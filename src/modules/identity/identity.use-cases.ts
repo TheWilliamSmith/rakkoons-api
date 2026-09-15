@@ -1,6 +1,7 @@
 import { Provider } from '@nestjs/common';
 import { AuthenticateSessionUseCase } from './application/authenticate-session.use-case';
 import { CancelAccountDeletionUseCase } from './application/cancel-account-deletion.use-case';
+import { CancelEmailChangeUseCase } from './application/cancel-email-change.use-case';
 import { ConfirmEmailChangeUseCase } from './application/confirm-email-change.use-case';
 import { PurgeDueAccountsUseCase } from './application/purge-due-accounts.use-case';
 import { ReadNotificationPreferencesUseCase } from './application/read-notification-preferences.use-case';
@@ -26,8 +27,12 @@ import { OpenSessionUseCase } from './application/open-session.use-case';
 import { RegisterAccountUseCase } from './application/register-account.use-case';
 import { RequestPasswordResetUseCase } from './application/request-password-reset.use-case';
 import { RequestSignInCodeUseCase } from './application/request-sign-in-code.use-case';
+import { ResendEmailChangeCodeUseCase } from './application/resend-email-change-code.use-case';
+import { ResendPasswordResetCodeUseCase } from './application/resend-password-reset-code.use-case';
+import { ResendRegistrationCodeUseCase } from './application/resend-registration-code.use-case';
 import { RevokeSessionUseCase } from './application/revoke-session.use-case';
 import { SessionOpener } from './application/session-opener';
+import { VerificationCodeResender } from './application/verification-code-resender';
 import { VerificationJourneyOpener } from './application/verification-journey-opener';
 import { VerifyPasswordResetCodeUseCase } from './application/verify-password-reset-code.use-case';
 import { VerifySignInCodeUseCase } from './application/verify-sign-in-code.use-case';
@@ -62,7 +67,115 @@ function journeyOpenerProvider(provide: symbol, policyToken: symbol): Provider {
   };
 }
 
+function codeResenderProvider(provide: symbol, policyToken: symbol): Provider {
+  return {
+    provide,
+    inject: [
+      IdentityToken.VerificationJourneyRepository,
+      IdentityToken.SecretHasher,
+      IdentityToken.VerificationCodeGenerator,
+      policyToken,
+    ],
+    useFactory: (
+      journeys: VerificationJourneyRepository,
+      secretHasher: SecretHasher,
+      codes: VerificationCodeGenerator,
+      policy: VerificationPolicy,
+    ): VerificationCodeResender =>
+      new VerificationCodeResender({ journeys, secretHasher, codes, policy }),
+  };
+}
+
 export const IDENTITY_USE_CASE_PROVIDERS: Provider[] = [
+  codeResenderProvider(
+    IdentityToken.RegistrationCodeResender,
+    IdentityToken.RegistrationPolicy,
+  ),
+  codeResenderProvider(
+    IdentityToken.EmailChangeCodeResender,
+    IdentityToken.EmailChangePolicy,
+  ),
+  codeResenderProvider(
+    IdentityToken.PasswordResetCodeResender,
+    IdentityToken.PasswordResetPolicy,
+  ),
+  {
+    provide: ResendRegistrationCodeUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.RegistrationCodeResender,
+      IdentityToken.MessageSender,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      resender: VerificationCodeResender,
+      messages: MessageSender,
+      clock: Clock,
+    ): ResendRegistrationCodeUseCase =>
+      new ResendRegistrationCodeUseCase({
+        accounts,
+        resender,
+        messages,
+        clock,
+      }),
+  },
+  {
+    provide: ResendPasswordResetCodeUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.PasswordResetCodeResender,
+      IdentityToken.PasswordHasher,
+      IdentityToken.MessageSender,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      resender: VerificationCodeResender,
+      passwordHasher: PasswordHasher,
+      messages: MessageSender,
+      clock: Clock,
+    ): ResendPasswordResetCodeUseCase =>
+      new ResendPasswordResetCodeUseCase({
+        accounts,
+        resender,
+        passwordHasher,
+        messages,
+        clock,
+      }),
+  },
+  {
+    provide: ResendEmailChangeCodeUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.EmailChangeCodeResender,
+      IdentityToken.MessageSender,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      resender: VerificationCodeResender,
+      messages: MessageSender,
+      clock: Clock,
+    ): ResendEmailChangeCodeUseCase =>
+      new ResendEmailChangeCodeUseCase({ accounts, resender, messages, clock }),
+  },
+  {
+    provide: CancelEmailChangeUseCase,
+    inject: [
+      IdentityToken.AccountRepository,
+      IdentityToken.VerificationJourneyRepository,
+      IdentityToken.UnitOfWork,
+      IdentityToken.Clock,
+    ],
+    useFactory: (
+      accounts: AccountRepository,
+      journeys: VerificationJourneyRepository,
+      unitOfWork: UnitOfWork,
+      clock: Clock,
+    ): CancelEmailChangeUseCase =>
+      new CancelEmailChangeUseCase({ accounts, journeys, unitOfWork, clock }),
+  },
   journeyOpenerProvider(
     IdentityToken.RegistrationJourneyOpener,
     IdentityToken.RegistrationPolicy,

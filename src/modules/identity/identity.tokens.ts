@@ -22,4 +22,7 @@ export const IdentityToken = {
   SignInCodeJourneyOpener: Symbol('SignInCodeJourneyOpener'),
   EmailChangeJourneyOpener: Symbol('EmailChangeJourneyOpener'),
   PasswordResetJourneyOpener: Symbol('PasswordResetJourneyOpener'),
+  RegistrationCodeResender: Symbol('RegistrationCodeResender'),
+  EmailChangeCodeResender: Symbol('EmailChangeCodeResender'),
+  PasswordResetCodeResender: Symbol('PasswordResetCodeResender'),
 } as const;

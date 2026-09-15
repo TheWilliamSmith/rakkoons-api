@@ -26,10 +26,14 @@ import {
 } from '@identity/application/identity-policy';
 import { OpenSessionUseCase } from '@identity/application/open-session.use-case';
 import { RegisterAccountUseCase } from '@identity/application/register-account.use-case';
+import { ResendEmailChangeCodeUseCase } from '@identity/application/resend-email-change-code.use-case';
+import { ResendPasswordResetCodeUseCase } from '@identity/application/resend-password-reset-code.use-case';
+import { ResendRegistrationCodeUseCase } from '@identity/application/resend-registration-code.use-case';
 import { RequestPasswordResetUseCase } from '@identity/application/request-password-reset.use-case';
 import { RequestSignInCodeUseCase } from '@identity/application/request-sign-in-code.use-case';
 import { RevokeSessionUseCase } from '@identity/application/revoke-session.use-case';
 import { SessionOpener } from '@identity/application/session-opener';
+import { VerificationCodeResender } from '@identity/application/verification-code-resender';
 import { VerificationJourneyOpener } from '@identity/application/verification-journey-opener';
 import { VerifyPasswordResetCodeUseCase } from '@identity/application/verify-password-reset-code.use-case';
 import { VerifySignInCodeUseCase } from '@identity/application/verify-sign-in-code.use-case';
@@ -50,6 +54,7 @@ const MINUTE = 60 * 1000;
 const DAY = 24 * 60 * MINUTE;
 
 export const TEST_CODE = '429861';
+export const TEST_NEXT_CODE = '703152';
 export const TEST_PASSWORD = 'MotDePasseQuiGagne1!';
 export const TEST_NEW_PASSWORD = 'NouveauMotDePasse2?';
 export const TEST_INSTANT = new Date('2026-01-01T10:00:00.000Z');
@@ -320,6 +325,43 @@ export class IdentityTestContext {
       accounts: this.accounts,
       unitOfWork: this.unitOfWork,
       clock: this.clock,
+    });
+  }
+
+  resendRegistrationCode(): ResendRegistrationCodeUseCase {
+    return new ResendRegistrationCodeUseCase({
+      accounts: this.accounts,
+      resender: this.codeResender(TEST_REGISTRATION_POLICY),
+      messages: this.messages,
+      clock: this.clock,
+    });
+  }
+
+  resendPasswordResetCode(): ResendPasswordResetCodeUseCase {
+    return new ResendPasswordResetCodeUseCase({
+      accounts: this.accounts,
+      resender: this.codeResender(TEST_PASSWORD_RESET_POLICY),
+      passwordHasher: this.passwordHasher,
+      messages: this.messages,
+      clock: this.clock,
+    });
+  }
+
+  resendEmailChangeCode(): ResendEmailChangeCodeUseCase {
+    return new ResendEmailChangeCodeUseCase({
+      accounts: this.accounts,
+      resender: this.codeResender(TEST_EMAIL_CHANGE_POLICY),
+      messages: this.messages,
+      clock: this.clock,
+    });
+  }
+
+  private codeResender(policy: VerificationPolicy): VerificationCodeResender {
+    return new VerificationCodeResender({
+      journeys: this.journeys,
+      secretHasher: this.secretHasher,
+      codes: this.codes,
+      policy,
     });
   }
 

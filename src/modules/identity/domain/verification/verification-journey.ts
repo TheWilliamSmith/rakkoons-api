@@ -102,6 +102,23 @@ export class VerificationJourney {
     this.state.verifiedAt = submittedAt;
   }
 
+  renewCode(
+    codeHash: PasswordHash,
+    codeExpiresAt: Date,
+    renewedAt: Date,
+  ): void {
+    if (
+      this.isConsumed() ||
+      this.isVerified() ||
+      renewedAt.getTime() >= this.state.expiresAt.getTime()
+    ) {
+      throw rejectionsFor(this.state.purpose).rejected();
+    }
+
+    this.state.codeHash = codeHash;
+    this.state.codeExpiresAt = codeExpiresAt;
+  }
+
   consumeVerified(consumedAt: Date): void {
     if (
       !this.isVerified() ||
