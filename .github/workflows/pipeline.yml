@@ -3,6 +3,9 @@ name: Rakkoons API CICD Pipeline
 on:
   push:
     branches: '*'
+  pull_request:
+    branches: ['**']
+    types: [opened, synchronize, reopened]
 
 env:
   NODE_VERSION: 22.15.0
@@ -195,6 +198,7 @@ jobs:
 
   sonarqube:
     needs: ['test-unit', 'test-e2e']
+    if: ${{ github.event_name != 'pull_request' || vars.SONARQUBE_PR_ANALYSIS == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
