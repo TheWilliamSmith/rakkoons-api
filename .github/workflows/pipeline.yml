@@ -213,6 +213,8 @@ jobs:
 
       - name: SonarQube scan
         uses: SonarSource/sonarqube-scan-action@v5
+        with:
+          args: ${{ github.event_name == 'pull_request' && format('-Dsonar.scm.revision={0}', github.event.pull_request.head.sha) || '' }}
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_ACCESS_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST_URL }}

@@ -1,3 +1,5 @@
+[![Quality gate status](https://sonar.william-smith.net/api/project_badges/measure?project=rakkoons-api&metric=alert_status&token=sqb_382df45fec5aaef9d3459d4addeeec4f65957665)](https://sonar.william-smith.net/dashboard?id=rakkoons-api)
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
