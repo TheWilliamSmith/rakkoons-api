@@ -1,6 +1,6 @@
 import { InvalidEmailAddressError } from '../errors/invalid-email-address.error';
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 const MAX_EMAIL_LENGTH = 254;
 
 export class EmailAddress {

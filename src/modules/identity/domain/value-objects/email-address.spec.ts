@@ -28,6 +28,12 @@ describe('EmailAddress', () => {
     );
   });
 
+  it('refuse un domaine dont une étiquette est vide', () => {
+    expect(() => EmailAddress.create('william@rakkoons..fr')).toThrow(
+      InvalidEmailAddressError,
+    );
+  });
+
   it('refuse une adresse plus longue que la limite', () => {
     const local = 'a'.repeat(250);
 
