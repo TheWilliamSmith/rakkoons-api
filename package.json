@@ -93,6 +93,10 @@
       "!src/generated/**"
     ],
     "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "lcov",
+      "text-summary"
+    ],
     "testEnvironment": "node",
     "setupFiles": [
       "<rootDir>/test/setup-unit.ts"

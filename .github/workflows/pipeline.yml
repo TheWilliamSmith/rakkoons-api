@@ -129,7 +129,14 @@ jobs:
 
       - run: pnpm run typecheck
 
-      - run: pnpm run test
+      - run: pnpm run test:cov
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: coverage/lcov.info
+          retention-days: 1
 
   test-e2e:
     needs: ['setup', 'eslint']
@@ -185,3 +192,30 @@ jobs:
         run: pnpm run db:deploy
 
       - run: pnpm run test:e2e
+
+  sonarqube:
+    needs: ['test-unit', 'test-e2e']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-unit
+          path: coverage
+
+      - name: SonarQube scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_ACCESS_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST_URL }}
+
+      - name: SonarQube quality gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_ACCESS_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST_URL }}
